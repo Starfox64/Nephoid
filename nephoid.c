@@ -24,7 +24,7 @@
 #define SCROLL_REGISTER			*((unsigned char*)0x2005)
 #define PPU_ADDRESS_REGISTER	*((unsigned char*)0x2006)
 #define PPU_DATA_REGISTER		*((unsigned char*)0x2007)
-#define OAM_DMA_REGISTER			*((unsigned char*)0x4014)
+#define OAM_DMA_REGISTER		*((unsigned char*)0x4014)
 
 
 
