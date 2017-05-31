@@ -25,8 +25,17 @@
 #define PPU_ADDRESS_REGISTER	*((unsigned char*)0x2006)
 #define PPU_DATA_REGISTER		*((unsigned char*)0x2007)
 #define OAM_DMA_REGISTER		*((unsigned char*)0x4014)
+#define JOYPAD1_REGISTER		*((unsigned char*)0x4016)
+#define JOYPAD2_REGISTER		*((unsigned char*)0x4017)
 
-
+#define JP1_A		128
+#define JP1_B		64
+#define JP1_SELECT	32
+#define JP1_START	16
+#define JP1_UP		8
+#define JP1_DOWN	4
+#define JP1_LEFT	2
+#define JP1_RIGHT	1
 
 //	GLOBAL VARS
 #pragma bss-name(push, "ZEROPAGE")	//	reduced access time
@@ -34,24 +43,9 @@ unsigned char NMIFlag;
 unsigned char index;
 unsigned char x;
 unsigned char y;
+unsigned char inputStatus;
 
-
-const unsigned char TEXT[]={"NEPHOID"};
-
-//	black, gray, lt gray, white
-const unsigned char PALETTE[]={
-0x11, 0x00, 0x00, 0x31, // blues
-0x00, 0x00, 0x00, 0x15, // red
-0x00, 0x00, 0x00, 0x27, // yellow
-0x00, 0x00, 0x00, 0x1a, // green
-};
-// note, 11 is the default background color = blue
-
-const unsigned char Attrib_Table[]={
-0x44, // 0100 0100,
-0xbb, // 1011 1011,
-0x44, // 0100 0100,
-0xbb}; // 1011 1011
+#include "DATA.c"
 
 
 #pragma bss-name(push, "OAM")
@@ -59,7 +53,13 @@ unsigned char SPRITE_TABLE[256];
 
 
 //	FUNCTION PROTOTYPES
-void display(void);
+void writeBallToPPU(void);
+
+
+	//utils functions
+void frameRoutine(void);
+void readInput(void);
+void writeBackgroundToPPU(void);
 void turnScreenOff(void);
 void turnScreenOn(void);
 void loadPalette(void);
@@ -70,35 +70,63 @@ void main (void)
 {
 	turnScreenOff();
 
-	x = 0x7;
+	x = 0x25;
 	y = 0x25;
 
 	loadPalette();
 
-	//	y coord
-	SPRITE_TABLE[0] = y;
-	//	tile
-	SPRITE_TABLE[1] = 0;
-	//	attributes (flipping etc)
-	SPRITE_TABLE[2] = 0;
-	//	x coord
-	SPRITE_TABLE[3] = x;
 
 	resetScrollRegister();
 	turnScreenOn();
 
-	display();
+	writeBackgroundToPPU();
 	while (1)
 	{
+		frameRoutine();
+		readInput();
+		if ((inputStatus & JP1_UP) != 0) --y;
+		if ((inputStatus & JP1_DOWN) != 0) ++y;
+		if ((inputStatus & JP1_LEFT) != 0) --x;
+		if ((inputStatus & JP1_RIGHT) != 0) ++x;
+
+
+		writeBallToPPU();
+	}
+}
+
+void writeBallToPPU(void)
+{
+	//	y coord
+	SPRITE_TABLE[0] = y;
+	//	tile
+	SPRITE_TABLE[1] = 0;
+	//	attributes
+	//	76543210 -> 10 = palette, 76=  flip vertically/horizontally
+	SPRITE_TABLE[2] = 11;
+	//	x coord
+	SPRITE_TABLE[3] = x;
+}
+
+void readInput(void)
+{
+	JOYPAD1_REGISTER = 1;
+	JOYPAD1_REGISTER = 0;
+	for (index = 8; index > 0; --index)
+	{
+		inputStatus = inputStatus | (JOYPAD1_REGISTER << index-1);
+	}
+}
+
+void frameRoutine(void)
+{
 	waitVBlank();
 	OAM_ADDRESS_REGISTER = 0;
 	OAM_DMA_REGISTER = 2;
 	resetScrollRegister();
-	}
-};
+	inputStatus = 0;
+}
 
-
-void display(void)
+void writeBackgroundToPPU(void)
 {
 	waitVBlank();
 
@@ -139,10 +167,15 @@ void loadPalette(void)
 	{
 		PPU_DATA_REGISTER = PALETTE[index];
 	}
+	for(index = 0; index < sizeof(PALETTE); ++index)
+	{
+		PPU_DATA_REGISTER = PALETTE[index];
+	}
 
 	PPU_ADDRESS_REGISTER = 0x23;
 	PPU_ADDRESS_REGISTER = 0xda;
-	for( index = 0; index < sizeof(Attrib_Table); ++index ){
+	for( index = 0; index < sizeof(Attrib_Table); ++index )
+	{
 		PPU_DATA_REGISTER = Attrib_Table[index];
 	}
 }

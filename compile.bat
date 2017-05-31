@@ -2,9 +2,9 @@
 
 set name="nephoid"
 
-set path=F:\2ARC\Nephoid
+set path=C:\Users\Valentin\Documents\GitHub\Nephoid\
 
-set CC65_HOME=..\cc65\bin\
+set CC65_HOME=F:\2ARC\cc65\bin\
 
 %CC65_HOME%cc65 -Oi %name%.c --add-source
 %CC65_HOME%ca65 reset.s
