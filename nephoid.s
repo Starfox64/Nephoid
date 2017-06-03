@@ -13,14 +13,18 @@
 	.forceimport	__STARTUP__
 	.export		_NMIFlag
 	.export		_index
-	.export		_x
-	.export		_y
+	.export		_spriteIndex
+	.export		_xBall
+	.export		_yBall
+	.export		_xPaddle
+	.export		_yPaddle
 	.export		_inputStatus
 	.export		_TEXT
+	.export		_PADDLE
 	.export		_PALETTE
 	.export		_Attrib_Table
 	.export		_SPRITE_TABLE
-	.export		_writeBallToPPU
+	.export		_writeSpritesToPPU
 	.export		_frameRoutine
 	.export		_readInput
 	.export		_writeBackgroundToPPU
@@ -31,10 +35,26 @@
 	.export		_waitVBlank
 	.export		_main
 
+.segment	"DATA"
+
+_xBall:
+	.byte	$25
+_yBall:
+	.byte	$25
+_xPaddle:
+	.byte	$00
+_yPaddle:
+	.byte	$B0
+
 .segment	"RODATA"
 
 _TEXT:
 	.byte	$4E,$45,$50,$48,$4F,$49,$44,$00
+_PADDLE:
+	.byte	$01
+	.byte	$02
+	.byte	$02
+	.byte	$01
 _PALETTE:
 	.byte	$30
 	.byte	$20
@@ -69,10 +89,7 @@ _NMIFlag:
 _index:
 	.res	1,$00
 .segment	"ZEROPAGE"
-_x:
-	.res	1,$00
-.segment	"ZEROPAGE"
-_y:
+_spriteIndex:
 	.res	1,$00
 .segment	"ZEROPAGE"
 _inputStatus:
@@ -82,35 +99,138 @@ _SPRITE_TABLE:
 	.res	256,$00
 
 ; ---------------------------------------------------------------
-; void __near__ writeBallToPPU (void)
+; void __near__ writeSpritesToPPU (void)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
 
-.proc	_writeBallToPPU: near
+.proc	_writeSpritesToPPU: near
 
 .segment	"CODE"
 
 ;
-; SPRITE_TABLE[0] = y;
-;
-	lda     _y
-	sta     _SPRITE_TABLE
-;
-; SPRITE_TABLE[1] = 0;
+; spriteIndex = 0;
 ;
 	lda     #$00
-	sta     _SPRITE_TABLE+1
+	sta     _spriteIndex
 ;
-; SPRITE_TABLE[2] = 11;
+; for (index = 0; index < 4; ++index)
 ;
-	lda     #$0B
-	sta     _SPRITE_TABLE+2
+	sta     _index
+L0113:	lda     _index
+	cmp     #$04
+	bcs     L0114
 ;
-; SPRITE_TABLE[3] = x;
+; SPRITE_TABLE[spriteIndex] = yPaddle;
 ;
-	lda     _x
+	ldy     _spriteIndex
+	lda     _yPaddle
+	sta     _SPRITE_TABLE,y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = PADDLE[index];
+;
+	lda     #<(_SPRITE_TABLE)
+	ldx     #>(_SPRITE_TABLE)
+	clc
+	adc     _spriteIndex
+	bcc     L004A
+	inx
+L004A:	sta     ptr1
+	stx     ptr1+1
+	ldy     _index
+	lda     _PADDLE,y
+	ldy     #$00
+	sta     (ptr1),y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = 1 + SPRITE_VERTICAL_FLIP;
+;
+	ldy     _spriteIndex
+	lda     #$41
+	sta     _SPRITE_TABLE,y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = xPaddle + (index << 3);
+;
+	lda     #<(_SPRITE_TABLE)
+	ldx     #>(_SPRITE_TABLE)
+	clc
+	adc     _spriteIndex
+	bcc     L0056
+	inx
+L0056:	sta     ptr1
+	stx     ptr1+1
+	lda     _index
+	asl     a
+	asl     a
+	asl     a
+	clc
+	adc     _xPaddle
+	ldy     #$00
+	sta     (ptr1),y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; for (index = 0; index < 4; ++index)
+;
+	inc     _index
+	jmp     L0113
+;
+; index = 16;
+;
+L0114:	lda     #$10
+	sta     _index
+;
+; SPRITE_TABLE[index] = yBall;
+;
+	ldy     _index
+	lda     _yBall
+	sta     _SPRITE_TABLE,y
+;
+; ++index;
+;
+	inc     _index
+;
+; SPRITE_TABLE[index] = 0;
+;
+	ldy     _index
+	lda     #$00
+	sta     _SPRITE_TABLE,y
+;
+; ++index;
+;
+	inc     _index
+;
+; SPRITE_TABLE[index] = 3;
+;
+	ldy     _index
+	lda     #$03
+	sta     _SPRITE_TABLE,y
+;
+; ++index;
+;
+	inc     _index
+;
+; SPRITE_TABLE[3] = xBall;
+;
+	lda     _xBall
 	sta     _SPRITE_TABLE+3
+;
+; ++index;
+;
+	inc     _index
 ;
 ; }
 ;
@@ -183,8 +303,8 @@ _SPRITE_TABLE:
 ;
 	lda     #$08
 	sta     _index
-L00EE:	lda     _index
-	beq     L0053
+L0115:	lda     _index
+	beq     L0077
 ;
 ; inputStatus = inputStatus | (JOYPAD1_REGISTER << index-1);
 ;
@@ -192,9 +312,9 @@ L00EE:	lda     _index
 	sbc     #$01
 	tay
 	lda     $4016
-L00EF:	asl     a
+L0116:	asl     a
 	dey
-	bpl     L00EF
+	bpl     L0116
 	ror     a
 	ora     _inputStatus
 	sta     _inputStatus
@@ -202,11 +322,11 @@ L00EF:	asl     a
 ; for (index = 8; index > 0; --index)
 ;
 	dec     _index
-	jmp     L00EE
+	jmp     L0115
 ;
 ; }
 ;
-L0053:	rts
+L0077:	rts
 
 .endproc
 
@@ -238,9 +358,9 @@ L0053:	rts
 ;
 	lda     #$00
 	sta     _index
-L00F0:	lda     _index
+L0117:	lda     _index
 	cmp     #$08
-	bcs     L00F1
+	bcs     L0118
 ;
 ; PPU_DATA_REGISTER = TEXT[index];
 ;
@@ -251,11 +371,11 @@ L00F0:	lda     _index
 ; for(index = 0; index < sizeof(TEXT); ++index)
 ;
 	inc     _index
-	jmp     L00F0
+	jmp     L0117
 ;
 ; PPU_ADDRESS_REGISTER = 0x23;
 ;
-L00F1:	lda     #$23
+L0118:	lda     #$23
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = 0x80;
@@ -267,9 +387,9 @@ L00F1:	lda     #$23
 ;
 	lda     #$00
 	sta     _index
-L00F2:	lda     _index
+L0119:	lda     _index
 	cmp     #$08
-	bcs     L0087
+	bcs     L00AB
 ;
 ; PPU_DATA_REGISTER = TEXT[index];
 ;
@@ -280,11 +400,11 @@ L00F2:	lda     _index
 ; for (index = 0; index < sizeof(TEXT); ++index)
 ;
 	inc     _index
-	jmp     L00F2
+	jmp     L0119
 ;
 ; resetScrollRegister();
 ;
-L0087:	jmp     _resetScrollRegister
+L00AB:	jmp     _resetScrollRegister
 
 .endproc
 
@@ -365,9 +485,9 @@ L0087:	jmp     _resetScrollRegister
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	sta     _index
-L00F3:	lda     _index
+L011A:	lda     _index
 	cmp     #$10
-	bcs     L00F4
+	bcs     L011B
 ;
 ; PPU_DATA_REGISTER = PALETTE[index];
 ;
@@ -378,15 +498,15 @@ L00F3:	lda     _index
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	inc     _index
-	jmp     L00F3
+	jmp     L011A
 ;
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
-L00F4:	lda     #$00
+L011B:	lda     #$00
 	sta     _index
-L00F5:	lda     _index
+L011C:	lda     _index
 	cmp     #$10
-	bcs     L00F6
+	bcs     L011D
 ;
 ; PPU_DATA_REGISTER = PALETTE[index];
 ;
@@ -397,11 +517,11 @@ L00F5:	lda     _index
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	inc     _index
-	jmp     L00F5
+	jmp     L011C
 ;
 ; PPU_ADDRESS_REGISTER = 0x23;
 ;
-L00F6:	lda     #$23
+L011D:	lda     #$23
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = 0xda;
@@ -413,9 +533,9 @@ L00F6:	lda     #$23
 ;
 	lda     #$00
 	sta     _index
-L00F7:	lda     _index
+L011E:	lda     _index
 	cmp     #$04
-	bcs     L00CD
+	bcs     L00F1
 ;
 ; PPU_DATA_REGISTER = Attrib_Table[index];
 ;
@@ -426,11 +546,11 @@ L00F7:	lda     _index
 ; for( index = 0; index < sizeof(Attrib_Table); ++index )
 ;
 	inc     _index
-	jmp     L00F7
+	jmp     L011E
 ;
 ; }
 ;
-L00CD:	rts
+L00F1:	rts
 
 .endproc
 
@@ -481,8 +601,8 @@ L00CD:	rts
 ;
 ; while (NMIFlag == 0);
 ;
-L00F8:	lda     _NMIFlag
-	beq     L00F8
+L011F:	lda     _NMIFlag
+	beq     L011F
 ;
 ; NMIFlag = 0;
 ;
@@ -510,15 +630,6 @@ L00F8:	lda     _NMIFlag
 ;
 	jsr     _turnScreenOff
 ;
-; x = 0x25;
-;
-	lda     #$25
-	sta     _x
-;
-; y = 0x25;
-;
-	sta     _y
-;
 ; loadPalette();
 ;
 	jsr     _loadPalette
@@ -537,47 +648,33 @@ L00F8:	lda     _NMIFlag
 ;
 ; frameRoutine();
 ;
-L0023:	jsr     _frameRoutine
+L0027:	jsr     _frameRoutine
 ;
 ; readInput();
 ;
 	jsr     _readInput
 ;
-; if ((inputStatus & JP1_UP) != 0) --y;
+; if ((inputStatus & JP1_LEFT) != 0) --xPaddle;
 ;
 	lda     _inputStatus
-	and     #$08
-	beq     L00F9
-	dec     _y
-;
-; if ((inputStatus & JP1_DOWN) != 0) ++y;
-;
-L00F9:	lda     _inputStatus
-	and     #$04
-	beq     L00FA
-	inc     _y
-;
-; if ((inputStatus & JP1_LEFT) != 0) --x;
-;
-L00FA:	lda     _inputStatus
 	and     #$02
-	beq     L00FB
-	dec     _x
+	beq     L0120
+	dec     _xPaddle
 ;
-; if ((inputStatus & JP1_RIGHT) != 0) ++x;
+; if ((inputStatus & JP1_RIGHT) != 0) ++xPaddle;
 ;
-L00FB:	lda     _inputStatus
+L0120:	lda     _inputStatus
 	and     #$01
-	beq     L0038
-	inc     _x
+	beq     L0032
+	inc     _xPaddle
 ;
-; writeBallToPPU();
+; writeSpritesToPPU();
 ;
-L0038:	jsr     _writeBallToPPU
+L0032:	jsr     _writeSpritesToPPU
 ;
 ; while (1)
 ;
-	jmp     L0023
+	jmp     L0027
 
 .endproc
 

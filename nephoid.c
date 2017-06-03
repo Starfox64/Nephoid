@@ -37,12 +37,22 @@
 #define JP1_LEFT	2
 #define JP1_RIGHT	1
 
+#define SPRITE_VERTICAL_FLIP 64
+#define SPRITE_HORIZONTAL_FLIP 128
+
 //	GLOBAL VARS
 #pragma bss-name(push, "ZEROPAGE")	//	reduced access time
 unsigned char NMIFlag;
+
 unsigned char index;
-unsigned char x;
-unsigned char y;
+unsigned char spriteIndex;
+
+unsigned char xBall = 0x25;
+unsigned char yBall = 0x25;
+
+unsigned char xPaddle = 0x0;
+unsigned char yPaddle = 0xB0;
+
 unsigned char inputStatus;
 
 #include "DATA.c"
@@ -53,8 +63,7 @@ unsigned char SPRITE_TABLE[256];
 
 
 //	FUNCTION PROTOTYPES
-void writeBallToPPU(void);
-
+void writeSpritesToPPU(void);
 
 	//utils functions
 void frameRoutine(void);
@@ -70,8 +79,6 @@ void main (void)
 {
 	turnScreenOff();
 
-	x = 0x25;
-	y = 0x25;
 
 	loadPalette();
 
@@ -84,27 +91,42 @@ void main (void)
 	{
 		frameRoutine();
 		readInput();
-		if ((inputStatus & JP1_UP) != 0) --y;
-		if ((inputStatus & JP1_DOWN) != 0) ++y;
-		if ((inputStatus & JP1_LEFT) != 0) --x;
-		if ((inputStatus & JP1_RIGHT) != 0) ++x;
+		if ((inputStatus & JP1_LEFT) != 0) --xPaddle;
+		if ((inputStatus & JP1_RIGHT) != 0) ++xPaddle;
 
 
-		writeBallToPPU();
+		writeSpritesToPPU();
 	}
 }
 
-void writeBallToPPU(void)
+
+void writeSpritesToPPU(void)
 {
+	spriteIndex = 0;
+	for (index = 0; index < 4; ++index)
+	{
+		SPRITE_TABLE[spriteIndex] = yPaddle;
+		++spriteIndex;
+		SPRITE_TABLE[spriteIndex] = PADDLE[index];
+		++spriteIndex;
+		SPRITE_TABLE[spriteIndex] = 1 + SPRITE_VERTICAL_FLIP;
+		++spriteIndex;
+		SPRITE_TABLE[spriteIndex] = xPaddle + index * 8;
+		++spriteIndex;
+	}
+	index = 16;
 	//	y coord
-	SPRITE_TABLE[0] = y;
+	SPRITE_TABLE[index] = yBall;
+	++index;
 	//	tile
-	SPRITE_TABLE[1] = 0;
+	SPRITE_TABLE[index] = 0;
+	++index;
 	//	attributes
-	//	76543210 -> 10 = palette, 76=  flip vertically/horizontally
-	SPRITE_TABLE[2] = 11;
+	SPRITE_TABLE[index] = 3;
+	++index;
 	//	x coord
-	SPRITE_TABLE[3] = x;
+	SPRITE_TABLE[3] = xBall;
+	++index;
 }
 
 void readInput(void)
