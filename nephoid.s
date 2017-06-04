@@ -14,20 +14,28 @@
 	.export		_NMIFlag
 	.export		_index
 	.export		_spriteIndex
-	.export		_xBall
-	.export		_yBall
 	.export		_xPaddle
 	.export		_yPaddle
+	.export		_dirPaddle
+	.export		_speedPaddle
+	.export		_xBall
+	.export		_yBall
+	.export		_dirBall
+	.export		_speedBall
 	.export		_inputStatus
+	.export		_launched
 	.export		_TEXT
 	.export		_PADDLE
 	.export		_PALETTE
 	.export		_Attrib_Table
 	.export		_SPRITE_TABLE
-	.export		_writeSpritesToPPU
+	.export		_updatePos
+	.export		_inputListener
+	.export		_spriteCollision
 	.export		_frameRoutine
 	.export		_readInput
 	.export		_writeBackgroundToPPU
+	.export		_writeSpritesToPPU
 	.export		_turnScreenOff
 	.export		_turnScreenOn
 	.export		_loadPalette
@@ -37,14 +45,24 @@
 
 .segment	"DATA"
 
-_xBall:
-	.byte	$25
-_yBall:
-	.byte	$25
 _xPaddle:
 	.byte	$00
 _yPaddle:
 	.byte	$B0
+_dirPaddle:
+	.byte	$03
+_speedPaddle:
+	.byte	$02
+_xBall:
+	.byte	$0C
+_yBall:
+	.byte	$A8
+_dirBall:
+	.byte	$03
+_speedBall:
+	.byte	$02
+_launched:
+	.byte	$01
 
 .segment	"RODATA"
 
@@ -99,138 +117,455 @@ _SPRITE_TABLE:
 	.res	256,$00
 
 ; ---------------------------------------------------------------
-; void __near__ writeSpritesToPPU (void)
+; void __near__ updatePos (void)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
 
-.proc	_writeSpritesToPPU: near
+.proc	_updatePos: near
 
 .segment	"CODE"
 
 ;
-; spriteIndex = 0;
+; if (dirPaddle == E && xPaddle < 223) {
 ;
-	lda     #$00
-	sta     _spriteIndex
+	lda     _dirPaddle
+	cmp     #$03
+	bne     L01DC
+	lda     _xPaddle
+	cmp     #$DF
+	bcs     L01DC
 ;
-; for (index = 0; index < 4; ++index)
+; xPaddle += speedPaddle;
 ;
-	sta     _index
-L0113:	lda     _index
-	cmp     #$04
-	bcs     L0114
-;
-; SPRITE_TABLE[spriteIndex] = yPaddle;
-;
-	ldy     _spriteIndex
-	lda     _yPaddle
-	sta     _SPRITE_TABLE,y
-;
-; ++spriteIndex;
-;
-	inc     _spriteIndex
-;
-; SPRITE_TABLE[spriteIndex] = PADDLE[index];
-;
-	lda     #<(_SPRITE_TABLE)
-	ldx     #>(_SPRITE_TABLE)
-	clc
-	adc     _spriteIndex
-	bcc     L004A
-	inx
-L004A:	sta     ptr1
-	stx     ptr1+1
-	ldy     _index
-	lda     _PADDLE,y
-	ldy     #$00
-	sta     (ptr1),y
-;
-; ++spriteIndex;
-;
-	inc     _spriteIndex
-;
-; SPRITE_TABLE[spriteIndex] = 1 + SPRITE_VERTICAL_FLIP;
-;
-	ldy     _spriteIndex
-	lda     #$41
-	sta     _SPRITE_TABLE,y
-;
-; ++spriteIndex;
-;
-	inc     _spriteIndex
-;
-; SPRITE_TABLE[spriteIndex] = xPaddle + (index << 3);
-;
-	lda     #<(_SPRITE_TABLE)
-	ldx     #>(_SPRITE_TABLE)
-	clc
-	adc     _spriteIndex
-	bcc     L0056
-	inx
-L0056:	sta     ptr1
-	stx     ptr1+1
-	lda     _index
-	asl     a
-	asl     a
-	asl     a
+	lda     _speedPaddle
 	clc
 	adc     _xPaddle
-	ldy     #$00
-	sta     (ptr1),y
+	sta     _xPaddle
 ;
-; ++spriteIndex;
+; if (launched == FALSE) xBall += speedPaddle;
 ;
-	inc     _spriteIndex
+	lda     _launched
+	cmp     #$01
+	bne     L01DF
+	lda     _speedPaddle
+	clc
 ;
-; for (index = 0; index < 4; ++index)
+; else if (dirPaddle == W && xPaddle > 0) {
 ;
-	inc     _index
-	jmp     L0113
+	jmp     L0205
+L01DC:	lda     _dirPaddle
+	cmp     #$07
+	bne     L01DF
+	lda     _xPaddle
+	beq     L01DF
 ;
-; index = 16;
+; xPaddle -= speedPaddle;
 ;
-L0114:	lda     #$10
-	sta     _index
+	lda     _speedPaddle
+	eor     #$FF
+	sec
+	adc     _xPaddle
+	sta     _xPaddle
 ;
-; SPRITE_TABLE[index] = yBall;
+; if (launched == FALSE) xBall -= speedPaddle;
 ;
-	ldy     _index
+	lda     _launched
+	cmp     #$01
+	bne     L01DF
+	lda     _speedPaddle
+	eor     #$FF
+	sec
+L0205:	adc     _xBall
+	sta     _xBall
+;
+; if (launched == TRUE) {
+;
+L01DF:	lda     _launched
+	beq     L01E0
+;
+; }
+;
+	rts
+;
+; switch (dirBall) {
+;
+L01E0:	lda     _dirBall
+;
+; }
+;
+	cmp     #$02
+	beq     L01E1
+	cmp     #$04
+	beq     L01EA
+	cmp     #$06
+	jeq     L01F3
+	cmp     #$08
+	jeq     L01FC
+	rts
+;
+; if (xBall < BALL_MAX_X && yBall > 0)
+;
+L01E1:	lda     _xBall
+	cmp     #$F7
+	bcs     L01E4
 	lda     _yBall
-	sta     _SPRITE_TABLE,y
+	beq     L01E4
 ;
-; ++index;
+; {xBall += speedBall; yBall -= speedBall;}
 ;
-	inc     _index
+	lda     _speedBall
+	clc
+	adc     _xBall
+	sta     _xBall
+	lda     _speedBall
+	eor     #$FF
+	sec
+	adc     _yBall
+	sta     _yBall
 ;
-; SPRITE_TABLE[index] = 0;
+; else {
 ;
-	ldy     _index
-	lda     #$00
-	sta     _SPRITE_TABLE,y
+	rts
 ;
-; ++index;
+; if (xBall >= BALL_MAX_X && yBall <= 0) dirBall = SW;
 ;
-	inc     _index
+L01E4:	lda     _xBall
+	cmp     #$F7
+	bcc     L01E8
+	lda     _yBall
+	bne     L01E8
+	lda     #$06
+	sta     _dirBall
 ;
-; SPRITE_TABLE[index] = 3;
+; else if (yBall <= 0) dirBall = SE;
 ;
-	ldy     _index
+	jmp     L01E0
+L01E8:	lda     _yBall
+	bne     L01E9
+	lda     #$04
+	sta     _dirBall
+;
+; else dirBall = NW;
+;
+	jmp     L01E0
+L01E9:	lda     #$08
+	sta     _dirBall
+;
+; goto moveAgain;
+;
+	jmp     L01E0
+;
+; if (xBall < BALL_MAX_X && yBall < BALL_MAX_Y)
+;
+L01EA:	lda     _xBall
+	cmp     #$F7
+	bcs     L01ED
+	lda     _yBall
+	cmp     #$E6
+	bcs     L01ED
+;
+; {xBall += speedBall; yBall += speedBall;}
+;
+	lda     _speedBall
+	clc
+	adc     _xBall
+	sta     _xBall
+	lda     _speedBall
+	clc
+	adc     _yBall
+	sta     _yBall
+;
+; else {
+;
+	rts
+;
+; if (xBall >= BALL_MAX_X && yBall >= BALL_MAX_Y) dirBall = NW;
+;
+L01ED:	lda     _xBall
+	cmp     #$F7
+	bcc     L01F1
+	lda     _yBall
+	cmp     #$E6
+	bcc     L01F1
+	lda     #$08
+	sta     _dirBall
+;
+; else if (yBall >= BALL_MAX_Y) dirBall = NE;
+;
+	jmp     L01E0
+L01F1:	lda     _yBall
+	cmp     #$E6
+	bcc     L01F2
+	lda     #$02
+	sta     _dirBall
+;
+; else dirBall = SW;
+;
+	jmp     L01E0
+L01F2:	lda     #$06
+	sta     _dirBall
+;
+; goto moveAgain;
+;
+	jmp     L01E0
+;
+; if (xBall > 0 && yBall < BALL_MAX_Y)
+;
+L01F3:	lda     _xBall
+	beq     L01F7
+	lda     _yBall
+	cmp     #$E6
+	bcs     L01F7
+;
+; {xBall -= speedBall; yBall += speedBall;}
+;
+	lda     _speedBall
+	eor     #$FF
+	sec
+	adc     _xBall
+	sta     _xBall
+	lda     _speedBall
+	clc
+	adc     _yBall
+	sta     _yBall
+;
+; else {
+;
+	rts
+;
+; if (xBall <= 0 && yBall >= BALL_MAX_Y) dirBall = NE;
+;
+L01F7:	lda     _xBall
+	bne     L01FA
+	lda     _yBall
+	cmp     #$E6
+	bcc     L01FA
+	lda     #$02
+	sta     _dirBall
+;
+; else if (yBall >= BALL_MAX_Y) dirBall = NW;
+;
+	jmp     L01E0
+L01FA:	lda     _yBall
+	cmp     #$E6
+	bcc     L01FB
+	lda     #$08
+	sta     _dirBall
+;
+; else dirBall = SE;
+;
+	jmp     L01E0
+L01FB:	lda     #$04
+	sta     _dirBall
+;
+; goto moveAgain;
+;
+	jmp     L01E0
+;
+; if (xBall > 0 && yBall > 0)
+;
+L01FC:	lda     _xBall
+	beq     L0200
+	lda     _yBall
+	beq     L0200
+;
+; {xBall -= speedBall; yBall -= speedBall;}
+;
+	lda     _speedBall
+	eor     #$FF
+	sec
+	adc     _xBall
+	sta     _xBall
+	lda     _speedBall
+	eor     #$FF
+	sec
+	adc     _yBall
+	sta     _yBall
+;
+; else {
+;
+	rts
+;
+; if (xBall <= 0 && yBall <= 0) dirBall = SE;
+;
+L0200:	lda     _xBall
+	bne     L0203
+	lda     _yBall
+	bne     L0203
+	lda     #$04
+	sta     _dirBall
+;
+; else if (yBall <= 0) dirBall = SW;
+;
+	jmp     L01E0
+L0203:	lda     _yBall
+	bne     L0204
+	lda     #$06
+	sta     _dirBall
+;
+; else dirBall = NE;
+;
+	jmp     L01E0
+L0204:	lda     #$02
+	sta     _dirBall
+;
+; goto moveAgain;
+;
+	jmp     L01E0
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ inputListener (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_inputListener: near
+
+.segment	"CODE"
+
+;
+; readInput();
+;
+	jsr     _readInput
+;
+; if ((inputStatus & JP1_LEFT) != 0)
+;
+	lda     _inputStatus
+	and     #$02
+	beq     L0206
+;
+; dirPaddle = W;
+;
+	lda     #$07
+	sta     _dirPaddle
+;
+; if (launched == FALSE) dirBall = NW;
+;
+	lda     _launched
+	cmp     #$01
+	bne     L0209
+	lda     #$08
+	sta     _dirBall
+;
+; else if ((inputStatus & JP1_RIGHT) != 0) //255-size of paddle
+;
+	jmp     L0209
+L0206:	lda     _inputStatus
+	and     #$01
+	beq     L0208
+;
+; dirPaddle = E;
+;
 	lda     #$03
-	sta     _SPRITE_TABLE,y
+	sta     _dirPaddle
 ;
-; ++index;
+; if (launched == FALSE) dirBall = NE;
 ;
-	inc     _index
+	lda     _launched
+	cmp     #$01
+	bne     L0209
+	lda     #$02
+	sta     _dirBall
 ;
-; SPRITE_TABLE[3] = xBall;
+; else dirPaddle = NESW;
 ;
+	jmp     L0209
+L0208:	sta     _dirPaddle
+;
+; if ((inputStatus & JP1_A) != 0 && launched == FALSE)
+;
+L0209:	lda     _inputStatus
+	and     #$80
+	beq     L020B
+	lda     _launched
+	cmp     #$01
+	beq     L020E
+L020B:	rts
+;
+; launched = TRUE;
+;
+L020E:	lda     #$00
+	sta     _launched
+;
+; }
+;
+	rts
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ spriteCollision (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_spriteCollision: near
+
+.segment	"CODE"
+
+;
+; if (xPaddle + 4 * 8 >= xBall && xPaddle <= xBall + 8
+;
+	ldx     #$00
+	lda     _xPaddle
+	clc
+	adc     #$20
+	bcc     L00DA
+	inx
+L00DA:	cmp     _xBall
+	txa
+	sbc     #$00
+	bcc     L0213
+	lda     _xPaddle
+	jsr     pusha0
 	lda     _xBall
-	sta     _SPRITE_TABLE+3
 ;
-; ++index;
+; && yPaddle <= yBall + 8 &&  yPaddle + 8 >= yBall)
 ;
-	inc     _index
+	clc
+	adc     #$08
+	bcc     L00DC
+	ldx     #$01
+L00DC:	jsr     tosicmp
+	beq     L0210
+	bcs     L0213
+L0210:	lda     _yPaddle
+	jsr     pusha0
+	lda     _yBall
+	clc
+	adc     #$08
+	bcc     L00DD
+	ldx     #$01
+L00DD:	jsr     tosicmp
+	beq     L0211
+	bcs     L0213
+L0211:	ldx     #$00
+	lda     _yPaddle
+	clc
+	adc     #$08
+	bcc     L00DE
+	inx
+L00DE:	cmp     _yBall
+	txa
+	sbc     #$00
+	bcs     L0214
+L0213:	rts
+;
+; if (dirBall == SE) dirBall = NE;
+;
+L0214:	lda     _dirBall
+	cmp     #$04
+	bne     L0215
+	lda     #$02
+;
+; else dirBall = NW;
+;
+	jmp     L020F
+L0215:	lda     #$08
+L020F:	sta     _dirBall
 ;
 ; }
 ;
@@ -265,16 +600,7 @@ L0114:	lda     #$10
 ;
 ; resetScrollRegister();
 ;
-	jsr     _resetScrollRegister
-;
-; inputStatus = 0;
-;
-	lda     #$00
-	sta     _inputStatus
-;
-; }
-;
-	rts
+	jmp     _resetScrollRegister
 
 .endproc
 
@@ -288,6 +614,19 @@ L0114:	lda     #$10
 
 .segment	"CODE"
 
+;
+; unsigned char test = 0;//TO DELETE
+;
+	lda     #$00
+	jsr     pusha
+;
+; unsigned char address = 0;//TO DELETE
+;
+	jsr     pusha
+;
+; inputStatus = 0;
+;
+	sta     _inputStatus
 ;
 ; JOYPAD1_REGISTER = 1;
 ;
@@ -303,30 +642,73 @@ L0114:	lda     #$10
 ;
 	lda     #$08
 	sta     _index
-L0115:	lda     _index
-	beq     L0077
+L0216:	lda     _index
+	beq     L0130
 ;
-; inputStatus = inputStatus | (JOYPAD1_REGISTER << index-1);
+; test = (JOYPAD1_REGISTER & 1);
 ;
+	lda     $4016
+	and     #$01
+	ldy     #$01
+	sta     (sp),y
+;
+; PPU_ADDRESS_REGISTER= 0x20;//TO DELETE
+;
+	lda     #$20
+	sta     $2006
+;
+; PPU_ADDRESS_REGISTER= 0x30 + address;//TO DELETE
+;
+	dey
+	lda     (sp),y
+	clc
+	adc     #$30
+	sta     $2006
+;
+; PPU_DATA_REGISTER = test + '0';//TO DELETE
+;
+	iny
+	lda     (sp),y
+	clc
+	adc     #$30
+	sta     $2007
+;
+; inputStatus = inputStatus | (test << index-1);
+;
+	lda     (sp),y
+	sta     ptr1
+	lda     _index
 	sec
 	sbc     #$01
 	tay
-	lda     $4016
-L0116:	asl     a
+	lda     ptr1
+L0217:	asl     a
 	dey
-	bpl     L0116
+	bpl     L0217
 	ror     a
 	ora     _inputStatus
 	sta     _inputStatus
 ;
+; ++address;//TO DELETE
+;
+	ldy     #$00
+	clc
+	lda     #$01
+	adc     (sp),y
+	sta     (sp),y
+;
 ; for (index = 8; index > 0; --index)
 ;
 	dec     _index
-	jmp     L0115
+	jmp     L0216
+;
+; resetScrollRegister();//TO DELETE
+;
+L0130:	jsr     _resetScrollRegister
 ;
 ; }
 ;
-L0077:	rts
+	jmp     incsp2
 
 .endproc
 
@@ -358,9 +740,9 @@ L0077:	rts
 ;
 	lda     #$00
 	sta     _index
-L0117:	lda     _index
+L0218:	lda     _index
 	cmp     #$08
-	bcs     L0118
+	bcs     L0219
 ;
 ; PPU_DATA_REGISTER = TEXT[index];
 ;
@@ -371,11 +753,11 @@ L0117:	lda     _index
 ; for(index = 0; index < sizeof(TEXT); ++index)
 ;
 	inc     _index
-	jmp     L0117
+	jmp     L0218
 ;
 ; PPU_ADDRESS_REGISTER = 0x23;
 ;
-L0118:	lda     #$23
+L0219:	lda     #$23
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = 0x80;
@@ -387,9 +769,9 @@ L0118:	lda     #$23
 ;
 	lda     #$00
 	sta     _index
-L0119:	lda     _index
+L021A:	lda     _index
 	cmp     #$08
-	bcs     L00AB
+	bcs     L0172
 ;
 ; PPU_DATA_REGISTER = TEXT[index];
 ;
@@ -400,11 +782,160 @@ L0119:	lda     _index
 ; for (index = 0; index < sizeof(TEXT); ++index)
 ;
 	inc     _index
-	jmp     L0119
+	jmp     L021A
 ;
 ; resetScrollRegister();
 ;
-L00AB:	jmp     _resetScrollRegister
+L0172:	jmp     _resetScrollRegister
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ writeSpritesToPPU (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_writeSpritesToPPU: near
+
+.segment	"CODE"
+
+;
+; spriteIndex = 0;
+;
+	lda     #$00
+	sta     _spriteIndex
+;
+; for (index = 0; index < 4; ++index)
+;
+	sta     _index
+L021C:	lda     _index
+	cmp     #$04
+	bcs     L00EB
+;
+; SPRITE_TABLE[spriteIndex] = yPaddle;
+;
+	ldy     _spriteIndex
+	lda     _yPaddle
+	sta     _SPRITE_TABLE,y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = PADDLE[index];
+;
+	lda     #<(_SPRITE_TABLE)
+	ldx     #>(_SPRITE_TABLE)
+	clc
+	adc     _spriteIndex
+	bcc     L00F9
+	inx
+L00F9:	sta     ptr1
+	stx     ptr1+1
+	ldy     _index
+	lda     _PADDLE,y
+	ldy     #$00
+	sta     (ptr1),y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = 1 + ((index==3)?SPRITE_VERTICAL_FLIP:0);
+;
+	lda     #<(_SPRITE_TABLE)
+	ldx     #>(_SPRITE_TABLE)
+	clc
+	adc     _spriteIndex
+	bcc     L0100
+	inx
+L0100:	sta     ptr1
+	stx     ptr1+1
+	lda     _index
+	cmp     #$03
+	bne     L021D
+	lda     #$40
+	jmp     L0106
+L021D:	tya
+L0106:	clc
+	adc     #$01
+	sta     (ptr1),y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = xPaddle + (index << 3);
+;
+	lda     #<(_SPRITE_TABLE)
+	ldx     #>(_SPRITE_TABLE)
+	clc
+	adc     _spriteIndex
+	bcc     L010C
+	inx
+L010C:	sta     ptr1
+	stx     ptr1+1
+	lda     _index
+	asl     a
+	asl     a
+	asl     a
+	clc
+	adc     _xPaddle
+	sta     (ptr1),y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; for (index = 0; index < 4; ++index)
+;
+	inc     _index
+	jmp     L021C
+;
+; SPRITE_TABLE[spriteIndex] = yBall;
+;
+L00EB:	ldy     _spriteIndex
+	lda     _yBall
+	sta     _SPRITE_TABLE,y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = 0;
+;
+	ldy     _spriteIndex
+	lda     #$00
+	sta     _SPRITE_TABLE,y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = 3;
+;
+	ldy     _spriteIndex
+	lda     #$03
+	sta     _SPRITE_TABLE,y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; SPRITE_TABLE[spriteIndex] = xBall;
+;
+	ldy     _spriteIndex
+	lda     _xBall
+	sta     _SPRITE_TABLE,y
+;
+; ++spriteIndex;
+;
+	inc     _spriteIndex
+;
+; }
+;
+	rts
 
 .endproc
 
@@ -485,9 +1016,9 @@ L00AB:	jmp     _resetScrollRegister
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	sta     _index
-L011A:	lda     _index
+L021E:	lda     _index
 	cmp     #$10
-	bcs     L011B
+	bcs     L021F
 ;
 ; PPU_DATA_REGISTER = PALETTE[index];
 ;
@@ -498,15 +1029,15 @@ L011A:	lda     _index
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	inc     _index
-	jmp     L011A
+	jmp     L021E
 ;
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
-L011B:	lda     #$00
+L021F:	lda     #$00
 	sta     _index
-L011C:	lda     _index
+L0220:	lda     _index
 	cmp     #$10
-	bcs     L011D
+	bcs     L0221
 ;
 ; PPU_DATA_REGISTER = PALETTE[index];
 ;
@@ -517,11 +1048,11 @@ L011C:	lda     _index
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	inc     _index
-	jmp     L011C
+	jmp     L0220
 ;
 ; PPU_ADDRESS_REGISTER = 0x23;
 ;
-L011D:	lda     #$23
+L0221:	lda     #$23
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = 0xda;
@@ -533,9 +1064,9 @@ L011D:	lda     #$23
 ;
 	lda     #$00
 	sta     _index
-L011E:	lda     _index
+L0222:	lda     _index
 	cmp     #$04
-	bcs     L00F1
+	bcs     L01B8
 ;
 ; PPU_DATA_REGISTER = Attrib_Table[index];
 ;
@@ -546,11 +1077,11 @@ L011E:	lda     _index
 ; for( index = 0; index < sizeof(Attrib_Table); ++index )
 ;
 	inc     _index
-	jmp     L011E
+	jmp     L0222
 ;
 ; }
 ;
-L00F1:	rts
+L01B8:	rts
 
 .endproc
 
@@ -601,8 +1132,8 @@ L00F1:	rts
 ;
 ; while (NMIFlag == 0);
 ;
-L011F:	lda     _NMIFlag
-	beq     L011F
+L0223:	lda     _NMIFlag
+	beq     L0223
 ;
 ; NMIFlag = 0;
 ;
@@ -648,33 +1179,27 @@ L011F:	lda     _NMIFlag
 ;
 ; frameRoutine();
 ;
-L0027:	jsr     _frameRoutine
+L002C:	jsr     _frameRoutine
 ;
-; readInput();
+; inputListener();
 ;
-	jsr     _readInput
+	jsr     _inputListener
 ;
-; if ((inputStatus & JP1_LEFT) != 0) --xPaddle;
+; updatePos();
 ;
-	lda     _inputStatus
-	and     #$02
-	beq     L0120
-	dec     _xPaddle
+	jsr     _updatePos
 ;
-; if ((inputStatus & JP1_RIGHT) != 0) ++xPaddle;
+; spriteCollision();
 ;
-L0120:	lda     _inputStatus
-	and     #$01
-	beq     L0032
-	inc     _xPaddle
+	jsr     _spriteCollision
 ;
 ; writeSpritesToPPU();
 ;
-L0032:	jsr     _writeSpritesToPPU
+	jsr     _writeSpritesToPPU
 ;
 ; while (1)
 ;
-	jmp     L0027
+	jmp     L002C
 
 .endproc
 
