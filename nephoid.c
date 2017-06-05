@@ -59,6 +59,7 @@
 //	GLOBAL VARS
 #pragma bss-name(push, "ZEROPAGE")	//	reduced access time
 unsigned char NMIFlag;
+unsigned char FrameCounter;
 
 unsigned char index;
 unsigned char spriteIndex;
@@ -76,6 +77,8 @@ unsigned char speedBall = 2;
 unsigned char inputStatus;
 
 unsigned char launched = FALSE;
+unsigned char paused = FALSE;
+unsigned char pauseTransition = FALSE;
 
 #include "DATA.c"
 
@@ -102,43 +105,57 @@ void waitVBlank(void);
 void main (void)
 {
 	turnScreenOff();
-
-
 	loadPalette();
-
-
 	resetScrollRegister();
 	turnScreenOn();
 
+	waitVBlank();
 	writeBackgroundToPPU();
 	while (1)
 	{
-		frameRoutine();
 		inputListener();
+		if (pauseTransition == TRUE && FrameCounter >= 120)
+			pauseTransition = FALSE;
 
-		updatePos();
-		spriteCollision();
-		writeSpritesToPPU();
+		if (paused == FALSE)
+		{
+			updatePos();
+			spriteCollision();
+			writeSpritesToPPU();
+		}
+		frameRoutine();
 	}
 }
 
 void inputListener(void)
 {
 	readInput();
-	if ((inputStatus & JP1_LEFT) != 0)
+	if ((inputStatus & JP1_START) != 0
+		&& pauseTransition == FALSE)
 	{
-		dirPaddle = W;
-		if (launched == FALSE) dirBall = NW;
+		paused = (paused == TRUE)?FALSE:TRUE;
+		pauseTransition = TRUE;
+		writeBackgroundToPPU();
 	}
-	else if ((inputStatus & JP1_RIGHT) != 0) //255-size of paddle
-	{
-		dirPaddle = E;
-		if (launched == FALSE) dirBall = NE;
-	}
-	else dirPaddle = NESW;
 
-	if ((inputStatus & JP1_A) != 0 && launched == FALSE)
-		launched = TRUE;
+	if (paused == FALSE)
+	{
+		if ((inputStatus & JP1_LEFT) != 0)
+		{
+			dirPaddle = W;
+			if (launched == FALSE) dirBall = NW;
+		}
+		else if ((inputStatus & JP1_RIGHT) != 0) //255-size of paddle
+		{
+			dirPaddle = E;
+			if (launched == FALSE) dirBall = NE;
+		}
+		else dirPaddle = NESW;
+
+		if ((inputStatus & JP1_A) != 0 && launched == FALSE)
+			launched = TRUE;
+	}
+
 }
 
 void updatePos(void)
@@ -154,47 +171,22 @@ void updatePos(void)
 	}
 	//	BALL
 	if (launched == TRUE) {
-		moveAgain:
 		switch (dirBall) {
 			case NE:
-				if (xBall < BALL_MAX_X && yBall > 0)
-				{xBall += speedBall;	yBall -= speedBall;}
-				else {
-					if (xBall >= BALL_MAX_X && yBall <= 0) dirBall = SW;
-					else if (yBall <= 0) dirBall = SE;
-					else dirBall = NW;
-					goto moveAgain;
-				}
+				xBall += speedBall;
+				yBall -= speedBall;
 				break;
 			case SE:
-				if (xBall < BALL_MAX_X && yBall < BALL_MAX_Y)
-				{xBall += speedBall;	yBall += speedBall;}
-				else {
-					if (xBall >= BALL_MAX_X && yBall >= BALL_MAX_Y) dirBall = NW;
-					else if (yBall >= BALL_MAX_Y) dirBall = NE;
-					else dirBall = SW;
-					goto moveAgain;
-				}
+				xBall += speedBall;
+				yBall += speedBall;
 				break;
 			case SW:
-				if (xBall > 0 && yBall < BALL_MAX_Y)
-				{xBall -= speedBall;	yBall += speedBall;}
-				else {
-					if (xBall <= 0 && yBall >= BALL_MAX_Y) dirBall = NE;
-					else if (yBall >= BALL_MAX_Y) dirBall = NW;
-					else dirBall = SE;
-					goto moveAgain;
-				}
+				xBall -= speedBall;
+				yBall += speedBall;
 				break;
 			case NW:
-				if (xBall > 0 && yBall > 0)
-				{xBall -= speedBall;	yBall -= speedBall;}
-				else {
-					if (xBall <= 0 && yBall <= 0) dirBall = SE;
-					else if (yBall <= 0) dirBall = SW;
-					else dirBall = NE;
-					goto moveAgain;
-				}
+				xBall -= speedBall;
+				yBall -= speedBall;
 				break;
 		}
 	}
@@ -202,11 +194,36 @@ void updatePos(void)
 
 void spriteCollision(void)
 {
+	//	PADDLE >< BALL
 	if (xPaddle + 4 * 8 >= xBall && xPaddle <= xBall + 8
 		&& yPaddle <= yBall + 8 &&  yPaddle + 8 >= yBall)
 	{
 		if (dirBall == SE) dirBall = NE;
 		else dirBall = NW;
+	}
+
+	//	BALL >< WALLS
+	switch (dirBall) {
+		case NE:
+			if (xBall >= BALL_MAX_X && yBall <= 0) dirBall = SW;
+			else if (yBall <= 0) dirBall = SE;
+			else if (xBall >= BALL_MAX_X) dirBall = NW;
+			break;
+		case SE:
+			if (xBall >= BALL_MAX_X && yBall >= BALL_MAX_Y) dirBall = NW;
+			else if (yBall >= BALL_MAX_Y) dirBall = NE;
+			else if (xBall >= BALL_MAX_X) dirBall = SW;
+			break;
+		case SW:
+			if (xBall <= 0 && yBall >= BALL_MAX_Y) dirBall = NE;
+			else if (yBall >= BALL_MAX_Y) dirBall = NW;
+			else if (xBall <= 0) dirBall = SE;
+			break;
+		case NW:
+			if (xBall <= 0 && yBall <= 0) dirBall = SE;
+			else if (yBall <= 0) dirBall = SW;
+			else if (xBall <= 0) dirBall = NE;
+			break;
 	}
 }
 
@@ -242,20 +259,20 @@ void writeSpritesToPPU(void)
 void readInput(void)
 {
 	unsigned char test = 0;//TO DELETE
-	unsigned char address = 0;//TO DELETE
+	// unsigned char address = 0;//TO DELETE
 	inputStatus = 0;
 	JOYPAD1_REGISTER = 1;
 	JOYPAD1_REGISTER = 0;
 	for (index = 8; index > 0; --index)
 	{
 		test = (JOYPAD1_REGISTER & 1);
-		PPU_ADDRESS_REGISTER= 0x20;//TO DELETE
-		PPU_ADDRESS_REGISTER= 0x30 + address;//TO DELETE
-		PPU_DATA_REGISTER = test + '0';//TO DELETE
+		// PPU_ADDRESS_REGISTER= 0x20;//TO DELETE
+		// PPU_ADDRESS_REGISTER= 0x30 + address;//TO DELETE
+		// PPU_DATA_REGISTER = test + '0';//TO DELETE
 		inputStatus = inputStatus | (test << index-1);
-		++address;//TO DELETE
+		// ++address;//TO DELETE
 	}
-	resetScrollRegister();//TO DELETE
+	// resetScrollRegister();//TO DELETE
 }
 
 void frameRoutine(void)
@@ -269,19 +286,23 @@ void frameRoutine(void)
 void writeBackgroundToPPU(void)
 {
 	waitVBlank();
-
 	PPU_ADDRESS_REGISTER= 0x20;
 	PPU_ADDRESS_REGISTER= 0x20;
 	for(index = 0; index < sizeof(TEXT); ++index)
-	{
 		PPU_DATA_REGISTER = TEXT[index];
-	}
 
 	PPU_ADDRESS_REGISTER = 0x23;
 	PPU_ADDRESS_REGISTER = 0x80;
 	for (index = 0; index < sizeof(TEXT); ++index)
-	{
 		PPU_DATA_REGISTER = TEXT[index];
+
+	//	PAUSE
+	PPU_ADDRESS_REGISTER = 0x23;
+	PPU_ADDRESS_REGISTER = 0x90;
+	for (index = 0; index < sizeof(PAUSE_TEXT); ++index)
+	{
+		if (paused == FALSE) PPU_DATA_REGISTER = 0;
+		else PPU_DATA_REGISTER = PAUSE_TEXT[index];
 	}
 
 	resetScrollRegister();
@@ -304,26 +325,20 @@ void loadPalette(void)
 	PPU_ADDRESS_REGISTER= 0x3f;
 	PPU_ADDRESS_REGISTER= 0x00;
 	for(index = 0; index < sizeof(PALETTE); ++index)
-	{
 		PPU_DATA_REGISTER = PALETTE[index];
-	}
 	for(index = 0; index < sizeof(PALETTE); ++index)
-	{
 		PPU_DATA_REGISTER = PALETTE[index];
-	}
 
 	PPU_ADDRESS_REGISTER = 0x23;
 	PPU_ADDRESS_REGISTER = 0xda;
 	for( index = 0; index < sizeof(Attrib_Table); ++index )
-	{
 		PPU_DATA_REGISTER = Attrib_Table[index];
-	}
 }
 
 void resetScrollRegister(void)
 {
-	PPU_ADDRESS_REGISTER= 0;
-	PPU_ADDRESS_REGISTER= 0;
+	PPU_ADDRESS_REGISTER = 0;
+	PPU_ADDRESS_REGISTER = 0;
 	SCROLL_REGISTER = 0;
 	SCROLL_REGISTER = 0;
 }

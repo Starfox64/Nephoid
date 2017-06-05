@@ -2,7 +2,7 @@
 
 	.import _main
 	.export __STARTUP__:absolute=1
-	.importzp _NMIFlag
+	.importzp _NMIFlag, _FrameCounter
 
 ; Linker generated symbols
 	.import __STACK_START__, __STACKSIZE__
@@ -133,6 +133,7 @@ BlankName:		;blanks screen
 
 nmi:
 	inc _NMIFlag
+	inc _FrameCounter
 irq:
     rti
 

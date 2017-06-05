@@ -1,5 +1,11 @@
 const unsigned char TEXT[]={"NEPHOID"};
+const unsigned char PAUSE_TEXT[]={"PAUSED"};
 const unsigned char PADDLE[]={1, 2, 2, 1};
+
+const unsigned char LEVEL1_X[] = {};
+const unsigned char LEVEL1_Y[] = {};
+unsigned char LEVEL1_DESTROYED[] = {};
+
 
 const unsigned char PALETTE[]={
 	//	4 background palettes
