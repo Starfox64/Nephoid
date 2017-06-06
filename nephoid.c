@@ -64,6 +64,9 @@ unsigned char FrameCounter;
 unsigned char index;
 unsigned char spriteIndex;
 
+unsigned char spriteX;
+unsigned char spriteY;
+
 unsigned char xPaddle = 0x0;
 unsigned char yPaddle = 0xB0;
 unsigned char dirPaddle = E;
@@ -114,7 +117,7 @@ void main (void)
 	while (1)
 	{
 		inputListener();
-		if (pauseTransition == TRUE && FrameCounter >= 120)
+		if (pauseTransition == TRUE && FrameCounter >= 30)
 			pauseTransition = FALSE;
 
 		if (paused == FALSE)
@@ -135,6 +138,7 @@ void inputListener(void)
 	{
 		paused = (paused == TRUE)?FALSE:TRUE;
 		pauseTransition = TRUE;
+		FrameCounter = 0;
 		writeBackgroundToPPU();
 	}
 
@@ -225,13 +229,17 @@ void spriteCollision(void)
 			else if (xBall <= 0) dirBall = NE;
 			break;
 	}
+
+	//	BALL >< SPRITES
+
+
 }
 
 //	UTILS FUNCTIONS
 void writeSpritesToPPU(void)
 {
 	spriteIndex = 0;
-	for (index = 0; index < 4; ++index)
+	for (index = 0; index < sizeof(PADDLE); ++index)
 	{
 		SPRITE_TABLE[spriteIndex] = yPaddle;
 		++spriteIndex;
@@ -259,20 +267,20 @@ void writeSpritesToPPU(void)
 void readInput(void)
 {
 	unsigned char test = 0;//TO DELETE
-	// unsigned char address = 0;//TO DELETE
+	unsigned char address = 0;//TO DELETE
 	inputStatus = 0;
 	JOYPAD1_REGISTER = 1;
 	JOYPAD1_REGISTER = 0;
 	for (index = 8; index > 0; --index)
 	{
 		test = (JOYPAD1_REGISTER & 1);
-		// PPU_ADDRESS_REGISTER= 0x20;//TO DELETE
-		// PPU_ADDRESS_REGISTER= 0x30 + address;//TO DELETE
-		// PPU_DATA_REGISTER = test + '0';//TO DELETE
+		PPU_ADDRESS_REGISTER= 0x20;//TO DELETE
+		PPU_ADDRESS_REGISTER= 0x30 + address;//TO DELETE
+		PPU_DATA_REGISTER = test + '0';//TO DELETE
 		inputStatus = inputStatus | (test << index-1);
-		// ++address;//TO DELETE
+		++address;//TO DELETE
 	}
-	// resetScrollRegister();//TO DELETE
+	resetScrollRegister();//TO DELETE
 }
 
 void frameRoutine(void)
@@ -291,10 +299,16 @@ void writeBackgroundToPPU(void)
 	for(index = 0; index < sizeof(TEXT); ++index)
 		PPU_DATA_REGISTER = TEXT[index];
 
-	PPU_ADDRESS_REGISTER = 0x23;
-	PPU_ADDRESS_REGISTER = 0x80;
-	for (index = 0; index < sizeof(TEXT); ++index)
-		PPU_DATA_REGISTER = TEXT[index];
+	PPU_ADDRESS_REGISTER = 0x20;
+	PPU_ADDRESS_REGISTER = 0x40;
+	for (index = 0; index < sizeof(LEVEL1_DESTROYED); ++index)
+	{
+		if (LEVEL1_DESTROYED[index] == FALSE)
+		{
+			PPU_DATA_REGISTER = 0x80;
+			PPU_DATA_REGISTER =
+		}
+	}
 
 	//	PAUSE
 	PPU_ADDRESS_REGISTER = 0x23;
@@ -330,7 +344,7 @@ void loadPalette(void)
 		PPU_DATA_REGISTER = PALETTE[index];
 
 	PPU_ADDRESS_REGISTER = 0x23;
-	PPU_ADDRESS_REGISTER = 0xda;
+	PPU_ADDRESS_REGISTER = 0xC0;
 	for( index = 0; index < sizeof(Attrib_Table); ++index )
 		PPU_DATA_REGISTER = Attrib_Table[index];
 }
