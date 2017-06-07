@@ -62,7 +62,8 @@ unsigned char NMIFlag;
 unsigned char FrameCounter;
 
 unsigned char index;
-unsigned char spriteIndex;
+unsigned char index2;
+unsigned char index3;
 
 unsigned char spriteX;
 unsigned char spriteY;
@@ -238,49 +239,49 @@ void spriteCollision(void)
 //	UTILS FUNCTIONS
 void writeSpritesToPPU(void)
 {
-	spriteIndex = 0;
+	index2 = 0;
 	for (index = 0; index < sizeof(PADDLE); ++index)
 	{
-		SPRITE_TABLE[spriteIndex] = yPaddle;
-		++spriteIndex;
-		SPRITE_TABLE[spriteIndex] = PADDLE[index];
-		++spriteIndex;
-		SPRITE_TABLE[spriteIndex] = 1 + ((index==3)?SPRITE_VERTICAL_FLIP:0);
-		++spriteIndex;
-		SPRITE_TABLE[spriteIndex] = xPaddle + (index << 3);
-		++spriteIndex;
+		SPRITE_TABLE[index2] = yPaddle;
+		++index2;
+		SPRITE_TABLE[index2] = PADDLE[index];
+		++index2;
+		SPRITE_TABLE[index2] = 1 + ((index==3)?SPRITE_VERTICAL_FLIP:0);
+		++index2;
+		SPRITE_TABLE[index2] = xPaddle + (index << 3);
+		++index2;
 	}
 	//	y coord
-	SPRITE_TABLE[spriteIndex] = yBall;
-	++spriteIndex;
+	SPRITE_TABLE[index2] = yBall;
+	++index2;
 	//	tile
-	SPRITE_TABLE[spriteIndex] = 0;
-	++spriteIndex;
+	SPRITE_TABLE[index2] = 0;
+	++index2;
 	//	attributes
-	SPRITE_TABLE[spriteIndex] = 3;
-	++spriteIndex;
+	SPRITE_TABLE[index2] = 3;
+	++index2;
 	//	x coord
-	SPRITE_TABLE[spriteIndex] = xBall;
-	++spriteIndex;
+	SPRITE_TABLE[index2] = xBall;
+	++index2;
 }
 
 void readInput(void)
 {
 	unsigned char test = 0;//TO DELETE
-	unsigned char address = 0;//TO DELETE
+	// unsigned char address = 0;//TO DELETE
 	inputStatus = 0;
 	JOYPAD1_REGISTER = 1;
 	JOYPAD1_REGISTER = 0;
 	for (index = 8; index > 0; --index)
 	{
 		test = (JOYPAD1_REGISTER & 1);
-		PPU_ADDRESS_REGISTER= 0x20;//TO DELETE
-		PPU_ADDRESS_REGISTER= 0x30 + address;//TO DELETE
-		PPU_DATA_REGISTER = test + '0';//TO DELETE
+		// PPU_ADDRESS_REGISTER= 0x20;//TO DELETE
+		// PPU_ADDRESS_REGISTER= 0x30 + address;//TO DELETE
+		// PPU_DATA_REGISTER = test + '0';//TO DELETE
 		inputStatus = inputStatus | (test << index-1);
-		++address;//TO DELETE
+		// ++address;//TO DELETE
 	}
-	resetScrollRegister();//TO DELETE
+	// resetScrollRegister();//TO DELETE
 }
 
 void frameRoutine(void)
@@ -294,30 +295,41 @@ void frameRoutine(void)
 void writeBackgroundToPPU(void)
 {
 	waitVBlank();
-	PPU_ADDRESS_REGISTER= 0x20;
-	PPU_ADDRESS_REGISTER= 0x20;
-	for(index = 0; index < sizeof(TEXT); ++index)
-		PPU_DATA_REGISTER = TEXT[index];
+	// PPU_ADDRESS_REGISTER= 0x20;
+	// PPU_ADDRESS_REGISTER= 0x20;
+	// for(index = 0; index < sizeof(TEXT); ++index)
+	// 	PPU_DATA_REGISTER = TEXT[index];
 
-	PPU_ADDRESS_REGISTER = 0x20;
-	PPU_ADDRESS_REGISTER = 0x40;
+	resetScrollRegister();
+	// BRICKS
+	index2 = 0x20;//	high byte
+	index3 = 0x20;//	low byte
 	for (index = 0; index < sizeof(LEVEL1_DESTROYED); ++index)
 	{
+		PPU_ADDRESS_REGISTER = index2;
+		PPU_ADDRESS_REGISTER = index3;
 		if (LEVEL1_DESTROYED[index] == FALSE)
 		{
 			PPU_DATA_REGISTER = 0x80;
-			PPU_DATA_REGISTER =
+			PPU_DATA_REGISTER = 0x81;
+			PPU_DATA_REGISTER = 0x81;
+			PPU_DATA_REGISTER = 0x82;
 		}
+		else
+		{
+			PPU_DATA_REGISTER = '@';
+		}
+		index3 += 4;
 	}
-
+	resetScrollRegister();
 	//	PAUSE
-	PPU_ADDRESS_REGISTER = 0x23;
-	PPU_ADDRESS_REGISTER = 0x90;
-	for (index = 0; index < sizeof(PAUSE_TEXT); ++index)
-	{
-		if (paused == FALSE) PPU_DATA_REGISTER = 0;
-		else PPU_DATA_REGISTER = PAUSE_TEXT[index];
-	}
+	// PPU_ADDRESS_REGISTER = 0x23;
+	// PPU_ADDRESS_REGISTER = 0x90;
+	// for (index = 0; index < sizeof(PAUSE_TEXT); ++index)
+	// {
+	// 	if (paused == FALSE) PPU_DATA_REGISTER = 0;
+	// 	else PPU_DATA_REGISTER = PAUSE_TEXT[index];
+	// }
 
 	resetScrollRegister();
 }
