@@ -63,10 +63,10 @@ unsigned char FrameCounter;
 
 unsigned char index;
 unsigned char index2;
-unsigned char index3;
 
-unsigned char spriteX;
-unsigned char spriteY;
+//just used vars
+unsigned char X;
+unsigned char Y;
 
 unsigned char xPaddle = 0x0;
 unsigned char yPaddle = 0xB0;
@@ -113,8 +113,9 @@ void main (void)
 	resetScrollRegister();
 	turnScreenOn();
 
-	waitVBlank();
+
 	writeBackgroundToPPU();
+
 	while (1)
 	{
 		inputListener();
@@ -292,46 +293,79 @@ void frameRoutine(void)
 	resetScrollRegister();
 }
 
+void writeBrickToPPU(void)
+{
+	//ppu_address is in X, Y
+	PPU_ADDRESS_REGISTER = X;
+	PPU_ADDRESS_REGISTER = Y;
+
+	if (LEVEL1_DESTROYED[index] == FALSE)
+	{
+		PPU_DATA_REGISTER = 0x80;
+		PPU_DATA_REGISTER = 0x81;
+		PPU_DATA_REGISTER = 0x81;
+		PPU_DATA_REGISTER = 0x82;
+	}
+	else
+	{
+		PPU_DATA_REGISTER = 0x00;
+		PPU_DATA_REGISTER = 0x00;
+		PPU_DATA_REGISTER = 0x00;
+		PPU_DATA_REGISTER = 0x00;
+	}
+
+	Y += 32;
+	if (Y < 32) ++X;
+
+	PPU_ADDRESS_REGISTER = X;
+	PPU_ADDRESS_REGISTER = Y;
+
+	if (LEVEL1_DESTROYED[index] == FALSE)
+	{
+		PPU_DATA_REGISTER = 0x90;
+		PPU_DATA_REGISTER = 0x91;
+		PPU_DATA_REGISTER = 0x91;
+		PPU_DATA_REGISTER = 0x92;
+	}
+	else
+	{
+		PPU_DATA_REGISTER = 0x00;
+		PPU_DATA_REGISTER = 0x00;
+		PPU_DATA_REGISTER = 0x00;
+		PPU_DATA_REGISTER = 0x00;
+	}
+}
+
 void writeBackgroundToPPU(void)
 {
 	waitVBlank();
+	turnScreenOff();
+	resetScrollRegister();
+
 	// PPU_ADDRESS_REGISTER= 0x20;
 	// PPU_ADDRESS_REGISTER= 0x20;
 	// for(index = 0; index < sizeof(TEXT); ++index)
 	// 	PPU_DATA_REGISTER = TEXT[index];
 
-	resetScrollRegister();
 	// BRICKS
-	index2 = 0x20;//	high byte
-	index3 = 0x20;//	low byte
 	for (index = 0; index < sizeof(LEVEL1_DESTROYED); ++index)
 	{
-		PPU_ADDRESS_REGISTER = index2;
-		PPU_ADDRESS_REGISTER = index3;
-		if (LEVEL1_DESTROYED[index] == FALSE)
-		{
-			PPU_DATA_REGISTER = 0x80;
-			PPU_DATA_REGISTER = 0x81;
-			PPU_DATA_REGISTER = 0x81;
-			PPU_DATA_REGISTER = 0x82;
-		}
-		else
-		{
-			PPU_DATA_REGISTER = '@';
-		}
-		index3 += 4;
+		X = HBYTE_ADDRESSES[index];
+		Y = LBYTE_ADDRESSES[index];
+		writeBrickToPPU();
 	}
-	resetScrollRegister();
 	//	PAUSE
-	// PPU_ADDRESS_REGISTER = 0x23;
-	// PPU_ADDRESS_REGISTER = 0x90;
-	// for (index = 0; index < sizeof(PAUSE_TEXT); ++index)
-	// {
-	// 	if (paused == FALSE) PPU_DATA_REGISTER = 0;
-	// 	else PPU_DATA_REGISTER = PAUSE_TEXT[index];
-	// }
+	PPU_ADDRESS_REGISTER = 0x23;
+	PPU_ADDRESS_REGISTER = 0x90;
+	for (index = 0; index < sizeof(PAUSE_TEXT); ++index)
+	{
+		if (paused == FALSE) PPU_DATA_REGISTER = 0;
+		else PPU_DATA_REGISTER = PAUSE_TEXT[index];
+	}
 
 	resetScrollRegister();
+	turnScreenOn();
+	waitVBlank();
 }
 
 void turnScreenOff(void)
