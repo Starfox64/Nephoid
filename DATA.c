@@ -1,4 +1,3 @@
-const unsigned char TEXT[]={"NEPHOID"};
 const unsigned char PAUSE_TEXT[]={"PAUSED"};
 const unsigned char GAME_OVER[]={"GAME OVER"};
 const unsigned char WIN[]={"YOU WIN"};
@@ -64,20 +63,34 @@ const unsigned char LBYTE_ADDRESSES[]={
 };
 
 
-unsigned char LEVEL1_DESTROYED[]={
-	1,1,1,1,	1,1,1,1,
-	1,1,1,1,	1,1,1,1,
-	1,1,1,1,	1,1,1,1,
-	1,1,1,1,	1,1,1,1,
+unsigned char LEVEL[][64]={
+{
+	1,1,1,0,	0,1,1,1,
+	1,1,0,0,	0,0,1,1,
+	1,0,0,0,	0,0,0,1,
+	0,0,1,0,	0,1,0,0,
 
-	1,1,1,1,	1,1,1,1,
-	1,1,1,1,	1,1,1,1,
-	1,1,1,1,	1,1,1,1,
-	0,0,0,0,	0,0,0,0
-//	1,1,1,1,	1,1,1,1
+	0,0,0,0,	0,0,0,0,
+	1,1,0,1,	1,0,1,1,
+	1,0,1,0,	0,1,0,1,
+	0,1,0,1,	1,0,1,0
+}, {
+	1,1,1,0,	0,1,1,1,
+	1,1,0,0,	0,0,1,1,
+	1,0,0,0,	0,0,0,1,
+	0,0,1,0,	0,1,0,0,
+
+	0,0,0,0,	0,0,0,0,
+	1,0,1,0,	0,1,0,1,
+	0,1,1,1,	1,1,1,0,
+	1,0,1,1,	1,1,0,1
+}
+
 };
-unsigned char LEVEL1_NB = 56;
 
+unsigned char LEVEL_NB[]={
+	36, 34
+};
 
 const unsigned char Attrib_Table[]={
 	0xAA, 0xAA, 0xAA, 0xAA,
@@ -105,13 +118,13 @@ const unsigned char Attrib_Table[]={
 const unsigned char PALETTE[]={
 	//	4 background palettes
 	//white lgrey grey dgrey
-	0x30, 0x20, 0x10, 0x00,	//	0 = universal color ; 1-3 = pal 0
-		//dblue blue dpurple
-	0x30, 0x02, 0x03, 0x04,	//	4 = mirror ; 5 - 7 = pal 1
-		//dblue, lblue, cblue
+	0x2D, 0x20, 0x10, 0x00,	//	0 = universal color ; 1-3 = pal 0
+		//PADDLE
+	0x30, 0x30, 0x33, 0x14,	//	4 = mirror ; 5 - 7 = pal 1
+		//BRICKS
 	0x30, 0x01, 0x21, 0x3C,	//	8 = mirror ; 9 - B = pal 2
-		//orange lorange yellow
-	0x30, 0x17, 0x27, 0x28	//	C = mirror ; D - F = pal 3
+		//BALL
+	0x30, 0x37, 0x14, 0x2B	//	C = mirror ; D - F = pal 3
 		//	4 sprites palettes
 };
 
