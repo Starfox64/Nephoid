@@ -17,6 +17,7 @@
 	.export		_index2
 	.export		_X
 	.export		_Y
+	.export		_level
 	.export		_xPaddle
 	.export		_yPaddle
 	.export		_dirPaddle
@@ -26,13 +27,15 @@
 	.export		_dirBall
 	.export		_speedBall
 	.export		_inputStatus
+	.export		_gameover
 	.export		_playing
 	.export		_launched
 	.export		_paused
 	.export		_pauseTransition
-	.export		_PAUSE_TEXT
-	.export		_GAME_OVER
-	.export		_WIN
+	.export		_PAUSE_STR
+	.export		_GAME_OVER_STR
+	.export		_WIN_STR
+	.export		_LEVEL_STR
 	.export		_PADDLE
 	.export		_BRICKS_X
 	.export		_BRICKS_Y
@@ -63,29 +66,7 @@
 
 .segment	"DATA"
 
-_xPaddle:
-	.byte	$00
-_yPaddle:
-	.byte	$D0
-_dirPaddle:
-	.byte	$03
-_speedPaddle:
-	.byte	$04
-_xBall:
-	.byte	$0C
-_yBall:
-	.byte	$C8
-_dirBall:
-	.byte	$03
-_speedBall:
-	.byte	$02
-_playing:
-	.byte	$01
-_launched:
-	.byte	$00
-_paused:
-	.byte	$00
-_pauseTransition:
+_gameover:
 	.byte	$00
 _LEVEL:
 	.byte	$01
@@ -222,12 +203,14 @@ _LEVEL_NB:
 
 .segment	"RODATA"
 
-_PAUSE_TEXT:
+_PAUSE_STR:
 	.byte	$50,$41,$55,$53,$45,$44,$00
-_GAME_OVER:
-	.byte	$47,$41,$4D,$45,$20,$4F,$56,$45,$52,$00
-_WIN:
-	.byte	$59,$4F,$55,$20,$57,$49,$4E,$00
+_GAME_OVER_STR:
+	.byte	$47,$41,$4D,$45,$20,$20,$4F,$56,$45,$52,$00
+_WIN_STR:
+	.byte	$59,$4F,$55,$20,$20,$57,$49,$4E,$00
+_LEVEL_STR:
+	.byte	$4C,$45,$56,$45,$4C,$20,$20,$00
 _PADDLE:
 	.byte	$01
 	.byte	$02
@@ -299,70 +282,70 @@ _BRICKS_X:
 	.byte	$C0
 	.byte	$E0
 _BRICKS_Y:
-	.byte	$00
-	.byte	$00
-	.byte	$00
-	.byte	$00
-	.byte	$00
-	.byte	$00
-	.byte	$00
-	.byte	$00
-	.byte	$10
-	.byte	$10
-	.byte	$10
-	.byte	$10
-	.byte	$10
-	.byte	$10
-	.byte	$10
-	.byte	$10
-	.byte	$20
-	.byte	$20
-	.byte	$20
-	.byte	$20
-	.byte	$20
-	.byte	$20
-	.byte	$20
-	.byte	$20
-	.byte	$40
-	.byte	$40
-	.byte	$40
-	.byte	$40
-	.byte	$40
-	.byte	$40
-	.byte	$40
-	.byte	$40
-	.byte	$50
-	.byte	$50
-	.byte	$50
-	.byte	$50
-	.byte	$50
-	.byte	$50
-	.byte	$50
-	.byte	$50
-	.byte	$60
-	.byte	$60
-	.byte	$60
-	.byte	$60
-	.byte	$60
-	.byte	$60
-	.byte	$60
-	.byte	$60
-	.byte	$70
-	.byte	$70
-	.byte	$70
-	.byte	$70
-	.byte	$70
-	.byte	$70
-	.byte	$70
-	.byte	$70
-	.byte	$80
-	.byte	$80
-	.byte	$80
-	.byte	$80
-	.byte	$80
-	.byte	$80
-	.byte	$80
-	.byte	$80
+	.byte	$08
+	.byte	$08
+	.byte	$08
+	.byte	$08
+	.byte	$08
+	.byte	$08
+	.byte	$08
+	.byte	$08
+	.byte	$18
+	.byte	$18
+	.byte	$18
+	.byte	$18
+	.byte	$18
+	.byte	$18
+	.byte	$18
+	.byte	$18
+	.byte	$28
+	.byte	$28
+	.byte	$28
+	.byte	$28
+	.byte	$28
+	.byte	$28
+	.byte	$28
+	.byte	$28
+	.byte	$38
+	.byte	$38
+	.byte	$38
+	.byte	$38
+	.byte	$38
+	.byte	$38
+	.byte	$38
+	.byte	$38
+	.byte	$48
+	.byte	$48
+	.byte	$48
+	.byte	$48
+	.byte	$48
+	.byte	$48
+	.byte	$48
+	.byte	$48
+	.byte	$58
+	.byte	$58
+	.byte	$58
+	.byte	$58
+	.byte	$58
+	.byte	$58
+	.byte	$58
+	.byte	$58
+	.byte	$68
+	.byte	$68
+	.byte	$68
+	.byte	$68
+	.byte	$68
+	.byte	$68
+	.byte	$68
+	.byte	$68
+	.byte	$78
+	.byte	$78
+	.byte	$78
+	.byte	$78
+	.byte	$78
+	.byte	$78
+	.byte	$78
+	.byte	$78
 _HBYTE_ADDRESSES:
 	.byte	$20
 	.byte	$20
@@ -599,7 +582,46 @@ _X:
 _Y:
 	.res	1,$00
 .segment	"ZEROPAGE"
+_level:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_xPaddle:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_yPaddle:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_dirPaddle:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_speedPaddle:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_xBall:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_yBall:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_dirBall:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_speedBall:
+	.res	1,$00
+.segment	"ZEROPAGE"
 _inputStatus:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_playing:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_launched:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_paused:
+	.res	1,$00
+.segment	"ZEROPAGE"
+_pauseTransition:
 	.res	1,$00
 .segment	"OAM"
 _SPRITE_TABLE:
@@ -620,10 +642,10 @@ _SPRITE_TABLE:
 ;
 	lda     _dirPaddle
 	cmp     #$03
-	bne     L04B6
+	bne     L04DD
 	lda     _xPaddle
 	cmp     #$DF
-	bcs     L04B6
+	bcs     L04DD
 ;
 ; xPaddle += speedPaddle;
 ;
@@ -635,18 +657,18 @@ _SPRITE_TABLE:
 ; if (launched == FALSE) xBall += speedPaddle;
 ;
 	lda     _launched
-	bne     L04B9
+	bne     L04E0
 	lda     _speedPaddle
 	clc
 ;
 ; else if (dirPaddle == W && xPaddle > 0) {
 ;
-	jmp     L04BE
-L04B6:	lda     _dirPaddle
+	jmp     L04E5
+L04DD:	lda     _dirPaddle
 	cmp     #$07
-	bne     L04B9
+	bne     L04E0
 	lda     _xPaddle
-	beq     L04B9
+	beq     L04E0
 ;
 ; xPaddle -= speedPaddle;
 ;
@@ -659,18 +681,18 @@ L04B6:	lda     _dirPaddle
 ; if (launched == FALSE) xBall -= speedPaddle;
 ;
 	lda     _launched
-	bne     L04B9
+	bne     L04E0
 	lda     _speedPaddle
 	eor     #$FF
 	sec
-L04BE:	adc     _xBall
+L04E5:	adc     _xBall
 	sta     _xBall
 ;
 ; if (launched == TRUE) {
 ;
-L04B9:	lda     _launched
+L04E0:	lda     _launched
 	cmp     #$01
-	bne     L0251
+	bne     L026D
 ;
 ; switch (dirBall) {
 ;
@@ -679,27 +701,27 @@ L04B9:	lda     _launched
 ; }
 ;
 	cmp     #$02
-	beq     L04BA
+	beq     L04E1
 	cmp     #$04
-	beq     L04BB
+	beq     L04E2
 	cmp     #$06
-	beq     L04BC
+	beq     L04E3
 	cmp     #$08
-	beq     L04BD
+	beq     L04E4
 	rts
 ;
 ; xBall += speedBall;
 ;
-L04BA:	lda     _speedBall
+L04E1:	lda     _speedBall
 	clc
 ;
 ; break;
 ;
-	jmp     L04C4
+	jmp     L04EB
 ;
 ; xBall += speedBall;
 ;
-L04BB:	lda     _speedBall
+L04E2:	lda     _speedBall
 	clc
 	adc     _xBall
 	sta     _xBall
@@ -711,11 +733,11 @@ L04BB:	lda     _speedBall
 ;
 ; break;
 ;
-	jmp     L04BF
+	jmp     L04E6
 ;
 ; xBall -= speedBall;
 ;
-L04BC:	lda     _speedBall
+L04E3:	lda     _speedBall
 	eor     #$FF
 	sec
 	adc     _xBall
@@ -728,14 +750,14 @@ L04BC:	lda     _speedBall
 ;
 ; break;
 ;
-	jmp     L04BF
+	jmp     L04E6
 ;
 ; xBall -= speedBall;
 ;
-L04BD:	lda     _speedBall
+L04E4:	lda     _speedBall
 	eor     #$FF
 	sec
-L04C4:	adc     _xBall
+L04EB:	adc     _xBall
 	sta     _xBall
 ;
 ; yBall -= speedBall;
@@ -743,12 +765,12 @@ L04C4:	adc     _xBall
 	lda     _speedBall
 	eor     #$FF
 	sec
-L04BF:	adc     _yBall
+L04E6:	adc     _yBall
 	sta     _yBall
 ;
 ; }
 ;
-L0251:	rts
+L026D:	rts
 
 .endproc
 
@@ -774,19 +796,19 @@ L0251:	rts
 ;
 ; && pauseTransition == FALSE)
 ;
-	beq     L04CA
+	beq     L04F1
 	lda     _pauseTransition
-	bne     L04CA
+	bne     L04F1
 ;
 ; paused = (paused == TRUE)?FALSE:TRUE;
 ;
 	lda     _paused
 	cmp     #$01
-	bne     L04C8
+	bne     L04EF
 	lda     #$00
-	jmp     L04C9
-L04C8:	lda     #$01
-L04C9:	sta     _paused
+	jmp     L04F0
+L04EF:	lda     #$01
+L04F0:	sta     _paused
 ;
 ; pauseTransition = TRUE;
 ;
@@ -804,14 +826,14 @@ L04C9:	sta     _paused
 ;
 ; if (paused == FALSE)
 ;
-L04CA:	lda     _paused
-	bne     L022F
+L04F1:	lda     _paused
+	bne     L024B
 ;
 ; if ((inputStatus & JP1_LEFT) != 0)
 ;
 	lda     _inputStatus
 	and     #$02
-	beq     L04CB
+	beq     L04F2
 ;
 ; dirPaddle = W;
 ;
@@ -821,16 +843,16 @@ L04CA:	lda     _paused
 ; if (launched == FALSE) dirBall = NW;
 ;
 	lda     _launched
-	bne     L04CE
+	bne     L04F5
 	lda     #$08
 	sta     _dirBall
 ;
 ; else if ((inputStatus & JP1_RIGHT) != 0) //255-size of paddle
 ;
-	jmp     L04CE
-L04CB:	lda     _inputStatus
+	jmp     L04F5
+L04F2:	lda     _inputStatus
 	and     #$01
-	beq     L04CD
+	beq     L04F4
 ;
 ; dirPaddle = E;
 ;
@@ -840,32 +862,32 @@ L04CB:	lda     _inputStatus
 ; if (launched == FALSE) dirBall = NE;
 ;
 	lda     _launched
-	bne     L04CE
+	bne     L04F5
 	lda     #$02
 	sta     _dirBall
 ;
 ; else dirPaddle = NESW;
 ;
-	jmp     L04CE
-L04CD:	sta     _dirPaddle
+	jmp     L04F5
+L04F4:	sta     _dirPaddle
 ;
 ; if ((inputStatus & JP1_A) != 0 && launched == FALSE)
 ;
-L04CE:	lda     _inputStatus
+L04F5:	lda     _inputStatus
 	and     #$80
-	beq     L04D0
+	beq     L04F7
 	lda     _launched
-	beq     L04D1
-L04D0:	rts
+	beq     L04F8
+L04F7:	rts
 ;
 ; launched = TRUE;
 ;
-L04D1:	lda     #$01
+L04F8:	lda     #$01
 	sta     _launched
 ;
 ; }
 ;
-L022F:	rts
+L024B:	rts
 
 .endproc
 
@@ -886,12 +908,12 @@ L022F:	rts
 	lda     _xPaddle
 	clc
 	adc     #$20
-	bcc     L026D
+	bcc     L0289
 	inx
-L026D:	cmp     _xBall
+L0289:	cmp     _xBall
 	txa
 	sbc     #$00
-	bcc     L04DC
+	bcc     L0505
 	lda     _xPaddle
 	jsr     pusha0
 	lda     _xBall
@@ -900,102 +922,107 @@ L026D:	cmp     _xBall
 ;
 	clc
 	adc     #$08
-	bcc     L026F
+	bcc     L028B
 	ldx     #$01
-L026F:	jsr     tosicmp
-	beq     L04D5
-	bcs     L04DC
-L04D5:	lda     _yPaddle
+L028B:	jsr     tosicmp
+	beq     L04FE
+	bcs     L0505
+L04FE:	lda     _yPaddle
 	jsr     pusha0
 	lda     _yBall
 	clc
 	adc     #$08
-	bcc     L0270
+	bcc     L028C
 	ldx     #$01
-L0270:	jsr     tosicmp
-	beq     L04D6
-	bcs     L04DC
-L04D6:	ldx     #$00
+L028C:	jsr     tosicmp
+	beq     L04FF
+	bcs     L0505
+L04FF:	ldx     #$00
 	lda     _yPaddle
 	clc
 	adc     #$08
-	bcc     L0271
+	bcc     L028D
 	inx
-L0271:	cmp     _yBall
+L028D:	cmp     _yBall
 	txa
 	sbc     #$00
-	bcc     L04DC
+	bcc     L0505
 ;
 ; if (dirBall == SE) dirBall = NE;
 ;
 	lda     _dirBall
 	cmp     #$04
-	bne     L04DB
+	bne     L0504
 	lda     #$02
 ;
 ; else dirBall = NW;
 ;
-	jmp     L04D2
-L04DB:	lda     #$08
-L04D2:	sta     _dirBall
+	jmp     L04FB
+L0504:	lda     #$08
+L04FB:	sta     _dirBall
 ;
 ; switch (dirBall) {
 ;
-L04DC:	lda     _dirBall
+L0505:	lda     _dirBall
 ;
 ; }
 ;
 	cmp     #$02
-	beq     L04DD
+	beq     L0506
 	cmp     #$04
-	beq     L04E3
+	beq     L050C
 	cmp     #$06
-	beq     L04E5
+	beq     L050E
 	cmp     #$08
-	beq     L04E7
-	jmp     L04EC
+	beq     L0510
+	jmp     L0515
 ;
 ; if (xBall >= BALL_MAX_X && yBall <= 8) dirBall = SW;
 ;
-L04DD:	lda     _xBall
+L0506:	lda     _xBall
 	cmp     #$F7
-	bcc     L04E1
+	bcc     L050A
 	lda     _yBall
 	cmp     #$09
-	bcs     L04E1
+	bcs     L050A
 	lda     #$06
 ;
 ; else if (yBall <= 8) dirBall = SE;
 ;
-	jmp     L04D3
-L04E1:	lda     _yBall
+	jmp     L04FC
+L050A:	lda     _yBall
 	cmp     #$09
-	bcs     L04E2
+	bcs     L050B
 	lda     #$04
 ;
 ; else if (xBall >= BALL_MAX_X) dirBall = NW;
 ;
-	jmp     L04D3
-L04E2:	lda     _xBall
+	jmp     L04FC
+L050B:	lda     _xBall
 	cmp     #$F7
 	lda     #$00
-	bcc     L04ED
+	bcc     L0516
 	lda     #$08
 ;
 ; break;
 ;
-	jmp     L04D3
+	jmp     L04FC
 ;
 ; if (yBall >= BALL_MAX_Y)
 ;
-L04E3:	lda     _yBall
+L050C:	lda     _yBall
 	cmp     #$E6
-	bcc     L04E4
+	bcc     L050D
 ;
 ; playing = FALSE;
 ;
 	lda     #$00
 	sta     _playing
+;
+; gameover = TRUE;
+;
+	lda     #$01
+	sta     _gameover
 ;
 ; writeGameOverToPPU();
 ;
@@ -1003,27 +1030,32 @@ L04E3:	lda     _yBall
 ;
 ; else if (xBall >= BALL_MAX_X) dirBall = SW;
 ;
-	jmp     L04EC
-L04E4:	lda     _xBall
+	jmp     L0515
+L050D:	lda     _xBall
 	cmp     #$F7
 	lda     #$00
-	bcc     L04ED
+	bcc     L0516
 	lda     #$06
 ;
 ; break;
 ;
-	jmp     L04D3
+	jmp     L04FC
 ;
 ; if (yBall >= BALL_MAX_Y)
 ;
-L04E5:	lda     _yBall
+L050E:	lda     _yBall
 	cmp     #$E6
-	bcc     L04E6
+	bcc     L050F
 ;
 ; playing = FALSE;
 ;
 	lda     #$00
 	sta     _playing
+;
+; gameover = TRUE;
+;
+	lda     #$01
+	sta     _gameover
 ;
 ; writeGameOverToPPU();
 ;
@@ -1031,57 +1063,67 @@ L04E5:	lda     _yBall
 ;
 ; else if (xBall <= 0) dirBall = SE;
 ;
-	jmp     L04EC
-L04E6:	lda     _xBall
-	bne     L04EC
+	jmp     L0515
+L050F:	lda     _xBall
+	bne     L0515
 	lda     #$04
 ;
 ; break;
 ;
-	jmp     L04D3
+	jmp     L04FC
 ;
 ; if (xBall <= 0 && yBall <= 8) dirBall = SE;
 ;
-L04E7:	lda     _xBall
-	bne     L04EA
+L0510:	lda     _xBall
+	bne     L0513
 	lda     _yBall
 	cmp     #$09
-	bcs     L04EA
+	bcs     L0513
 	lda     #$04
 ;
 ; else if (yBall <= 8) dirBall = SW;
 ;
-	jmp     L04D3
-L04EA:	lda     _yBall
+	jmp     L04FC
+L0513:	lda     _yBall
 	cmp     #$09
-	bcs     L04EB
+	bcs     L0514
 	lda     #$06
 ;
 ; else if (xBall <= 0) dirBall = NE;
 ;
-	jmp     L04D3
-L04EB:	lda     _xBall
-	bne     L04EC
+	jmp     L04FC
+L0514:	lda     _xBall
+	bne     L0515
 	lda     #$02
-L04D3:	sta     _dirBall
+L04FC:	sta     _dirBall
 ;
-; for (index = 0; index < sizeof(LEVEL[0]); ++index)
+; for (index = 0; index < sizeof(LEVEL[level]); ++index)
 ;
-L04EC:	lda     #$00
-L04ED:	sta     _index
-L04EE:	lda     _index
+L0515:	lda     #$00
+L0516:	sta     _index
+L0517:	lda     _index
 	cmp     #$40
-	bcc     L04F9
+	bcc     L0521
 ;
 ; }
 ;
 	rts
 ;
-; if (LEVEL[0][index] == FALSE)
+; if (LEVEL[level][index] == FALSE)
 ;
-L04F9:	ldy     _index
-	lda     _LEVEL,y
-	jne     L04F8
+L0521:	ldx     #$00
+	lda     _level
+	jsr     aslax4
+	jsr     aslax2
+	clc
+	adc     #<(_LEVEL)
+	sta     ptr1
+	txa
+	adc     #>(_LEVEL)
+	sta     ptr1+1
+	ldy     _index
+	lda     (ptr1),y
+	jne     L0520
 ;
 ; if (xBall <= BRICKS_X[index] + 32 && xBall + 8 >= BRICKS_X[index]
 ;
@@ -1091,52 +1133,69 @@ L04F9:	ldy     _index
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L02CC
+	bcc     L02EB
 	ldx     #$01
-L02CC:	jsr     tosicmp
-	beq     L04D7
-	jcs     L04F8
-L04D7:	ldx     #$00
+L02EB:	jsr     tosicmp
+	beq     L0500
+	jcs     L0520
+L0500:	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L02CE
+	bcc     L02ED
 	inx
-L02CE:	jsr     pushax
+L02ED:	jsr     pushax
 	ldy     _index
 	lda     _BRICKS_X,y
 ;
 ; && yBall < BRICKS_Y[index] + 16 && yBall + 8 >= BRICKS_Y[index])
 ;
 	jsr     tosicmp0
-	jcc     L04F8
+	jcc     L0520
 	lda     _yBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_Y,y
 	clc
 	adc     #$10
-	bcc     L02D3
+	bcc     L02F2
 	ldx     #$01
-L02D3:	jsr     tosicmp
-	jcs     L04F8
+L02F2:	jsr     tosicmp
+	jcs     L0520
 	ldx     #$00
 	lda     _yBall
 	clc
 	adc     #$08
-	bcc     L02D4
+	bcc     L02F3
 	inx
-L02D4:	jsr     pushax
+L02F3:	jsr     pushax
 	ldy     _index
 	lda     _BRICKS_Y,y
 	jsr     tosicmp0
-	jcc     L04F8
+	jcc     L0520
 ;
-; LEVEL[0][index] = TRUE;
+; LEVEL[level][index] = TRUE;
 ;
-	ldy     _index
+	ldx     #$00
+	lda     _level
+	jsr     aslax4
+	jsr     aslax2
+	clc
+	adc     #<(_LEVEL)
+	tay
+	txa
+	adc     #>(_LEVEL)
+	tax
+	tya
+	clc
+	adc     _index
+	bcc     L04FA
+	inx
+L04FA:	sta     ptr1
+	stx     ptr1+1
 	lda     #$01
-	sta     _LEVEL,y
+	ldy     #$00
+	sta     (ptr1),y
 ;
 ; switch (dirBall)
 ;
@@ -1145,193 +1204,151 @@ L02D4:	jsr     pushax
 ; }
 ;
 	cmp     #$02
-	beq     L04EF
+	beq     L0518
 	cmp     #$04
-	jeq     L04F2
+	beq     L051A
 	cmp     #$06
-	jeq     L04F4
+	beq     L051C
 	cmp     #$08
-	jeq     L04F6
-	jmp     L02DF
+	jeq     L051E
+	jmp     L02FD
 ;
-; if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index] && yBall < BRICKS_Y[index] + 16 && xBall + 8 ) dirBall = NW;
+; if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index]) dirBall = NW;
 ;
-L04EF:	lda     _xBall
+L0518:	lda     _xBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_X,y
 	jsr     tosicmp0
-	bcs     L02E6
+	bcs     L0519
 	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L02E7
+	bcc     L0305
 	inx
-L02E7:	jsr     pushax
+L0305:	jsr     pushax
 	ldy     _index
 	lda     _BRICKS_X,y
 	jsr     tosicmp0
-	bcc     L02E6
-	lda     _yBall
-	jsr     pusha0
-	ldy     _index
-	lda     _BRICKS_Y,y
-	clc
-	adc     #$10
-	bcc     L02EC
-	ldx     #$01
-L02EC:	jsr     tosicmp
-	bcs     L02E6
-	ldx     #$00
-	lda     _xBall
-	clc
-	adc     #$08
-	bcc     L02ED
-	inx
-L02ED:	stx     tmp1
-	ora     tmp1
-	bne     L02E3
-L02E6:	jmp     L04F0
-L02E3:	lda     #$08
-;
-; else if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index]) dirBall = NW;
-;
-	jmp     L04D4
-L04F0:	lda     _xBall
-	jsr     pusha0
-	ldy     _index
-	lda     _BRICKS_X,y
-	jsr     tosicmp0
-	bcs     L04F1
-	ldx     #$00
-	lda     _xBall
-	clc
-	adc     #$08
-	bcc     L02F7
-	inx
-L02F7:	jsr     pushax
-	ldy     _index
-	lda     _BRICKS_X,y
-	jsr     tosicmp0
-	bcc     L04F1
+	bcc     L0519
 	lda     #$08
 ;
 ; else dirBall = SE;
 ;
-	jmp     L04D4
-L04F1:	lda     #$04
+	jmp     L04FD
+L0519:	lda     #$04
 ;
 ; break;
 ;
-	jmp     L04D4
+	jmp     L04FD
 ;
 ; if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index]) dirBall = SW;
 ;
-L04F2:	lda     _xBall
+L051A:	lda     _xBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_X,y
 	jsr     tosicmp0
-	bcs     L04F3
+	bcs     L051B
 	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L0307
+	bcc     L0315
 	inx
-L0307:	jsr     pushax
+L0315:	jsr     pushax
 	ldy     _index
 	lda     _BRICKS_X,y
 	jsr     tosicmp0
-	jcs     L04F7
+	jcs     L051F
 ;
 ; else dirBall = NE;
 ;
-L04F3:	lda     #$02
+L051B:	lda     #$02
 ;
 ; break;
 ;
-	jmp     L04D4
+	jmp     L04FD
 ;
 ; if (xBall < BRICKS_X[index] + 32 && xBall + 8 >= BRICKS_X[index] + 32) dirBall = SE;
 ;
-L04F4:	lda     _xBall
+L051C:	lda     _xBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L0316
+	bcc     L0324
 	ldx     #$01
-L0316:	jsr     tosicmp
-	bcs     L04F5
+L0324:	jsr     tosicmp
+	bcs     L051D
 	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L0318
+	bcc     L0326
 	inx
-L0318:	jsr     pushax
+L0326:	jsr     pushax
 	ldy     _index
 	ldx     #$00
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L031B
+	bcc     L0329
 	inx
-L031B:	jsr     tosicmp
-	bcc     L04F5
+L0329:	jsr     tosicmp
+	bcc     L051D
 	lda     #$04
 ;
 ; else dirBall = NW;
 ;
-	jmp     L04D4
-L04F5:	lda     #$08
+	jmp     L04FD
+L051D:	lda     #$08
 ;
 ; break;
 ;
-	jmp     L04D4
+	jmp     L04FD
 ;
 ; if (xBall < BRICKS_X[index] + 32 && xBall + 8 >= BRICKS_X[index] + 32) dirBall = NE;
 ;
-L04F6:	lda     _xBall
+L051E:	lda     _xBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L0328
+	bcc     L0336
 	ldx     #$01
-L0328:	jsr     tosicmp
-	bcs     L04F7
+L0336:	jsr     tosicmp
+	bcs     L051F
 	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L032A
+	bcc     L0338
 	inx
-L032A:	jsr     pushax
+L0338:	jsr     pushax
 	ldy     _index
 	ldx     #$00
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L032D
+	bcc     L033B
 	inx
-L032D:	jsr     tosicmp
-	bcc     L04F7
+L033B:	jsr     tosicmp
+	bcc     L051F
 	lda     #$02
 ;
 ; else dirBall = SW;
 ;
-	jmp     L04D4
-L04F7:	lda     #$06
-L04D4:	sta     _dirBall
+	jmp     L04FD
+L051F:	lda     #$06
+L04FD:	sta     _dirBall
 ;
 ; X = HBYTE_ADDRESSES[index];
 ;
-L02DF:	ldy     _index
+L02FD:	ldy     _index
 	lda     _HBYTE_ADDRESSES,y
 	sta     _X
 ;
@@ -1353,25 +1370,41 @@ L02DF:	ldy     _index
 ;
 	jsr     _resetScrollRegister
 ;
-; --LEVEL_NB[0];
+; --LEVEL_NB[level];
 ;
-	dec     _LEVEL_NB
+	lda     #<(_LEVEL_NB)
+	ldx     #>(_LEVEL_NB)
+	clc
+	adc     _level
+	bcc     L034F
+	inx
+L034F:	sta     ptr1
+	stx     ptr1+1
+	ldy     #$00
+	lda     (ptr1),y
+	sec
+	sbc     #$01
+	sta     (ptr1),y
 ;
-; if (LEVEL_NB[0] == 0) {playing = FALSE; writeWinToPPU();}
+; if (LEVEL_NB[level] == 0) {playing = FALSE;}
 ;
-	lda     _LEVEL_NB
-	bne     L02BA
+	ldy     _level
+	lda     _LEVEL_NB,y
+	bne     L02DA
 	sta     _playing
-	jmp     _writeWinToPPU
 ;
-; for (index = 0; index < sizeof(LEVEL[0]); ++index)
+; break;
 ;
-L04F8:	inc     _index
-	jmp     L04EE
+	rts
+;
+; for (index = 0; index < sizeof(LEVEL[level]); ++index)
+;
+L0520:	inc     _index
+	jmp     L0517
 ;
 ; }
 ;
-L02BA:	rts
+L02DA:	rts
 
 .endproc
 
@@ -1440,8 +1473,8 @@ L02BA:	rts
 ;
 	lda     #$08
 	sta     _index
-L04FA:	lda     _index
-	beq     L0390
+L0522:	lda     _index
+	beq     L039F
 ;
 ; test = (JOYPAD1_REGISTER & 1);
 ;
@@ -1458,9 +1491,9 @@ L04FA:	lda     _index
 	sbc     #$01
 	tay
 	lda     ptr1
-L04FB:	asl     a
+L0523:	asl     a
 	dey
-	bpl     L04FB
+	bpl     L0523
 	ror     a
 	ora     _inputStatus
 	sta     _inputStatus
@@ -1468,11 +1501,11 @@ L04FB:	asl     a
 ; for (index = 8; index > 0; --index)
 ;
 	dec     _index
-	jmp     L04FA
+	jmp     L0522
 ;
 ; }
 ;
-L0390:	jmp     incsp1
+L039F:	jmp     incsp1
 
 .endproc
 
@@ -1497,11 +1530,21 @@ L0390:	jmp     incsp1
 	lda     _Y
 	sta     $2006
 ;
-; if (LEVEL[0][index] == FALSE)
+; if (LEVEL[level][index] == FALSE)
 ;
+	ldx     #$00
+	lda     _level
+	jsr     aslax4
+	jsr     aslax2
+	clc
+	adc     #<(_LEVEL)
+	sta     ptr1
+	txa
+	adc     #>(_LEVEL)
+	sta     ptr1+1
 	ldy     _index
-	lda     _LEVEL,y
-	bne     L04FE
+	lda     (ptr1),y
+	bne     L0528
 ;
 ; PPU_DATA_REGISTER = 0x80;
 ;
@@ -1523,11 +1566,11 @@ L0390:	jmp     incsp1
 ;
 ; else
 ;
-	jmp     L04FC
+	jmp     L0526
 ;
 ; PPU_DATA_REGISTER = 0x83;
 ;
-L04FE:	lda     #$83
+L0528:	lda     #$83
 	sta     $2007
 ;
 ; PPU_DATA_REGISTER = 0x83;
@@ -1540,7 +1583,7 @@ L04FE:	lda     #$83
 ;
 ; PPU_DATA_REGISTER = 0x83;
 ;
-L04FC:	sta     $2007
+L0526:	sta     $2007
 ;
 ; Y += 32;
 ;
@@ -1552,12 +1595,12 @@ L04FC:	sta     $2007
 ; if (Y < 32) ++X;
 ;
 	cmp     #$20
-	bcs     L04FF
+	bcs     L0529
 	inc     _X
 ;
 ; PPU_ADDRESS_REGISTER = X;
 ;
-L04FF:	lda     _X
+L0529:	lda     _X
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = Y;
@@ -1565,11 +1608,21 @@ L04FF:	lda     _X
 	lda     _Y
 	sta     $2006
 ;
-; if (LEVEL[0][index] == FALSE)
+; if (LEVEL[level][index] == FALSE)
 ;
+	ldx     #$00
+	lda     _level
+	jsr     aslax4
+	jsr     aslax2
+	clc
+	adc     #<(_LEVEL)
+	sta     ptr1
+	txa
+	adc     #>(_LEVEL)
+	sta     ptr1+1
 	ldy     _index
-	lda     _LEVEL,y
-	bne     L0500
+	lda     (ptr1),y
+	bne     L052A
 ;
 ; PPU_DATA_REGISTER = 0x90;
 ;
@@ -1591,11 +1644,11 @@ L04FF:	lda     _X
 ;
 ; else
 ;
-	jmp     L04FD
+	jmp     L0527
 ;
 ; PPU_DATA_REGISTER = 0x83;
 ;
-L0500:	lda     #$83
+L052A:	lda     #$83
 	sta     $2007
 ;
 ; PPU_DATA_REGISTER = 0x83;
@@ -1608,7 +1661,7 @@ L0500:	lda     #$83
 ;
 ; PPU_DATA_REGISTER = 0x83;
 ;
-L04FD:	sta     $2007
+L0527:	sta     $2007
 ;
 ; }
 ;
@@ -1639,13 +1692,13 @@ L04FD:	sta     $2007
 ;
 	jsr     _resetScrollRegister
 ;
-; for (index = 0; index < sizeof(LEVEL[0]); ++index)
+; for (index = 0; index < sizeof(LEVEL[level]); ++index)
 ;
 	lda     #$00
 	sta     _index
-L0501:	lda     _index
+L052B:	lda     _index
 	cmp     #$40
-	bcs     L0444
+	bcs     L052C
 ;
 ; X = HBYTE_ADDRESSES[index];
 ;
@@ -1663,14 +1716,50 @@ L0501:	lda     _index
 ;
 	jsr     _writeBrickToPPU
 ;
-; for (index = 0; index < sizeof(LEVEL[0]); ++index)
+; for (index = 0; index < sizeof(LEVEL[level]); ++index)
 ;
 	inc     _index
-	jmp     L0501
+	jmp     L052B
+;
+; PPU_ADDRESS_REGISTER = 0x22;
+;
+L052C:	lda     #$22
+	sta     $2006
+;
+; PPU_ADDRESS_REGISTER = 0x8C;
+;
+	lda     #$8C
+	sta     $2006
+;
+; for (index = 0; index < sizeof(LEVEL_STR); ++index)
+;
+	lda     #$00
+	sta     _index
+L052D:	lda     _index
+	cmp     #$08
+	bcs     L052E
+;
+; PPU_DATA_REGISTER = LEVEL_STR[index];
+;
+	ldy     _index
+	lda     _LEVEL_STR,y
+	sta     $2007
+;
+; for (index = 0; index < sizeof(LEVEL_STR); ++index)
+;
+	inc     _index
+	jmp     L052D
+;
+; PPU_DATA_REGISTER = level + '1';
+;
+L052E:	lda     _level
+	clc
+	adc     #$31
+	sta     $2007
 ;
 ; resetScrollRegister();
 ;
-L0444:	jsr     _resetScrollRegister
+	jsr     _resetScrollRegister
 ;
 ; turnScreenOn();
 ;
@@ -1702,38 +1791,38 @@ L0444:	jsr     _resetScrollRegister
 	lda     #$23
 	sta     $2006
 ;
-; PPU_ADDRESS_REGISTER = 0x88;
+; PPU_ADDRESS_REGISTER = 0x8D;
 ;
-	lda     #$88
+	lda     #$8D
 	sta     $2006
 ;
-; for (index = 0; index < sizeof(PAUSE_TEXT); ++index)
+; for (index = 0; index < sizeof(PAUSE_STR); ++index)
 ;
 	lda     #$00
 	sta     _index
-L0503:	lda     _index
+L0530:	lda     _index
 	cmp     #$07
-	bcs     L042B
+	bcs     L043A
 ;
 ; if (paused == FALSE) PPU_DATA_REGISTER = 0;
 ;
 	lda     _paused
 ;
-; else PPU_DATA_REGISTER = PAUSE_TEXT[index];
+; else PPU_DATA_REGISTER = PAUSE_STR[index];
 ;
-	beq     L0502
+	beq     L052F
 	ldy     _index
-	lda     _PAUSE_TEXT,y
-L0502:	sta     $2007
+	lda     _PAUSE_STR,y
+L052F:	sta     $2007
 ;
-; for (index = 0; index < sizeof(PAUSE_TEXT); ++index)
+; for (index = 0; index < sizeof(PAUSE_STR); ++index)
 ;
 	inc     _index
-	jmp     L0503
+	jmp     L0530
 ;
 ; resetScrollRegister();
 ;
-L042B:	jmp     _resetScrollRegister
+L043A:	jmp     _resetScrollRegister
 
 .endproc
 
@@ -1757,33 +1846,33 @@ L042B:	jmp     _resetScrollRegister
 	lda     #$22
 	sta     $2006
 ;
-; PPU_ADDRESS_REGISTER = 0x8C;
+; PPU_ADDRESS_REGISTER = 0x8B;
 ;
-	lda     #$8C
+	lda     #$8B
 	sta     $2006
 ;
-; for (index = 0; index < sizeof(GAME_OVER); ++index)
+; for (index = 0; index < sizeof(GAME_OVER_STR); ++index)
 ;
 	lda     #$00
 	sta     _index
-L0504:	lda     _index
-	cmp     #$0A
-	bcs     L03FF
+L0531:	lda     _index
+	cmp     #$0B
+	bcs     L040C
 ;
-; PPU_DATA_REGISTER = GAME_OVER[index];
+; PPU_DATA_REGISTER = GAME_OVER_STR[index];
 ;
 	ldy     _index
-	lda     _GAME_OVER,y
+	lda     _GAME_OVER_STR,y
 	sta     $2007
 ;
-; for (index = 0; index < sizeof(GAME_OVER); ++index)
+; for (index = 0; index < sizeof(GAME_OVER_STR); ++index)
 ;
 	inc     _index
-	jmp     L0504
+	jmp     L0531
 ;
-; }
+; resetScrollRegister();
 ;
-L03FF:	rts
+L040C:	jmp     _resetScrollRegister
 
 .endproc
 
@@ -1807,33 +1896,33 @@ L03FF:	rts
 	lda     #$22
 	sta     $2006
 ;
-; PPU_ADDRESS_REGISTER = 0x8D;
+; PPU_ADDRESS_REGISTER = 0x8C;
 ;
-	lda     #$8D
+	lda     #$8C
 	sta     $2006
 ;
-; for (index = 0; index < sizeof(WIN); ++index)
+; for (index = 0; index < sizeof(WIN_STR); ++index)
 ;
 	lda     #$00
 	sta     _index
-L0505:	lda     _index
-	cmp     #$08
-	bcs     L0415
+L0532:	lda     _index
+	cmp     #$09
+	bcs     L0423
 ;
-; PPU_DATA_REGISTER = WIN[index];
+; PPU_DATA_REGISTER = WIN_STR[index];
 ;
 	ldy     _index
-	lda     _WIN,y
+	lda     _WIN_STR,y
 	sta     $2007
 ;
-; for (index = 0; index < sizeof(WIN); ++index)
+; for (index = 0; index < sizeof(WIN_STR); ++index)
 ;
 	inc     _index
-	jmp     L0505
+	jmp     L0532
 ;
-; }
+; resetScrollRegister();
 ;
-L0415:	rts
+L0423:	jmp     _resetScrollRegister
 
 .endproc
 
@@ -1856,9 +1945,9 @@ L0415:	rts
 ; for (index = 0; index < sizeof(PADDLE); ++index)
 ;
 	sta     _index
-L0507:	lda     _index
+L0534:	lda     _index
 	cmp     #$04
-	bcs     L034B
+	bcs     L035A
 ;
 ; SPRITE_TABLE[index2] = yPaddle;
 ;
@@ -1876,9 +1965,9 @@ L0507:	lda     _index
 	ldx     #>(_SPRITE_TABLE)
 	clc
 	adc     _index2
-	bcc     L035A
+	bcc     L0369
 	inx
-L035A:	sta     ptr1
+L0369:	sta     ptr1
 	stx     ptr1+1
 	ldy     _index
 	lda     _PADDLE,y
@@ -1895,17 +1984,17 @@ L035A:	sta     ptr1
 	ldx     #>(_SPRITE_TABLE)
 	clc
 	adc     _index2
-	bcc     L0361
+	bcc     L0370
 	inx
-L0361:	sta     ptr1
+L0370:	sta     ptr1
 	stx     ptr1+1
 	lda     _index
 	cmp     #$03
-	bne     L0508
+	bne     L0535
 	lda     #$40
-	jmp     L0367
-L0508:	tya
-L0367:	clc
+	jmp     L0376
+L0535:	tya
+L0376:	clc
 	adc     #$01
 	sta     (ptr1),y
 ;
@@ -1919,9 +2008,9 @@ L0367:	clc
 	ldx     #>(_SPRITE_TABLE)
 	clc
 	adc     _index2
-	bcc     L036D
+	bcc     L037C
 	inx
-L036D:	sta     ptr1
+L037C:	sta     ptr1
 	stx     ptr1+1
 	lda     _index
 	asl     a
@@ -1938,11 +2027,11 @@ L036D:	sta     ptr1
 ; for (index = 0; index < sizeof(PADDLE); ++index)
 ;
 	inc     _index
-	jmp     L0507
+	jmp     L0534
 ;
 ; SPRITE_TABLE[index2] = yBall;
 ;
-L034B:	ldy     _index2
+L035A:	ldy     _index2
 	lda     _yBall
 	sta     _SPRITE_TABLE,y
 ;
@@ -2063,9 +2152,9 @@ L034B:	ldy     _index2
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	sta     _index
-L0509:	lda     _index
+L0536:	lda     _index
 	cmp     #$10
-	bcs     L050A
+	bcs     L0537
 ;
 ; PPU_DATA_REGISTER = PALETTE[index];
 ;
@@ -2076,15 +2165,15 @@ L0509:	lda     _index
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	inc     _index
-	jmp     L0509
+	jmp     L0536
 ;
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
-L050A:	lda     #$00
+L0537:	lda     #$00
 	sta     _index
-L050B:	lda     _index
+L0538:	lda     _index
 	cmp     #$10
-	bcs     L050C
+	bcs     L0539
 ;
 ; PPU_DATA_REGISTER = PALETTE[index];
 ;
@@ -2095,11 +2184,11 @@ L050B:	lda     _index
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	inc     _index
-	jmp     L050B
+	jmp     L0538
 ;
 ; PPU_ADDRESS_REGISTER = 0x23;
 ;
-L050C:	lda     #$23
+L0539:	lda     #$23
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = 0xC0;
@@ -2111,9 +2200,9 @@ L050C:	lda     #$23
 ;
 	lda     #$00
 	sta     _index
-L050D:	lda     _index
+L053A:	lda     _index
 	cmp     #$40
-	bcs     L0491
+	bcs     L04B8
 ;
 ; PPU_DATA_REGISTER = Attrib_Table[index];
 ;
@@ -2124,11 +2213,11 @@ L050D:	lda     _index
 ; for( index = 0; index < sizeof(Attrib_Table); ++index )
 ;
 	inc     _index
-	jmp     L050D
+	jmp     L053A
 ;
 ; }
 ;
-L0491:	rts
+L04B8:	rts
 
 .endproc
 
@@ -2179,8 +2268,8 @@ L0491:	rts
 ;
 ; while (NMIFlag == 0);
 ;
-L050E:	lda     _NMIFlag
-	beq     L050E
+L053B:	lda     _NMIFlag
+	beq     L053B
 ;
 ; NMIFlag = 0;
 ;
@@ -2220,26 +2309,92 @@ L050E:	lda     _NMIFlag
 ;
 	jsr     _turnScreenOn
 ;
+; for (level = 0; level < sizeof(LEVEL_NB); ++level)
+;
+	lda     #$00
+	sta     _level
+L053C:	lda     _level
+	cmp     #$02
+	bcs     L0540
+;
+; xPaddle = 0x0;
+;
+	lda     #$00
+	sta     _xPaddle
+;
+; yPaddle = 0xD0;
+;
+	lda     #$D0
+	sta     _yPaddle
+;
+; dirPaddle = E;
+;
+	lda     #$03
+	sta     _dirPaddle
+;
+; speedPaddle = 4;
+;
+	lda     #$04
+	sta     _speedPaddle
+;
+; xBall = 0x0C;
+;
+	lda     #$0C
+	sta     _xBall
+;
+; yBall = 0xC8;
+;
+	lda     #$C8
+	sta     _yBall
+;
+; dirBall = E;
+;
+	lda     #$03
+	sta     _dirBall
+;
+; speedBall = 2;
+;
+	lda     #$02
+	sta     _speedBall
+;
+; playing = TRUE;
+;
+	lda     #$01
+	sta     _playing
+;
+; launched = FALSE;
+;
+	lda     #$00
+	sta     _launched
+;
+; paused = FALSE;
+;
+	sta     _paused
+;
+; pauseTransition = FALSE;
+;
+	sta     _pauseTransition
+;
 ; writeBackgroundToPPU();
 ;
 	jsr     _writeBackgroundToPPU
 ;
 ; while (playing)
 ;
-	jmp     L01F2
+	jmp     L0209
 ;
 ; inputListener();
 ;
-L01F0:	jsr     _inputListener
+L0207:	jsr     _inputListener
 ;
 ; if (pauseTransition == TRUE && FrameCounter >= 30)
 ;
 	lda     _pauseTransition
 	cmp     #$01
-	bne     L0511
+	bne     L053F
 	lda     _FrameCounter
 	cmp     #$1E
-	bcc     L0511
+	bcc     L053F
 ;
 ; pauseTransition = FALSE;
 ;
@@ -2248,8 +2403,8 @@ L01F0:	jsr     _inputListener
 ;
 ; if (paused == FALSE)
 ;
-L0511:	lda     _paused
-	bne     L01FB
+L053F:	lda     _paused
+	bne     L0212
 ;
 ; updatePos();
 ;
@@ -2265,12 +2420,28 @@ L0511:	lda     _paused
 ;
 ; frameRoutine();
 ;
-L01FB:	jsr     _frameRoutine
+L0212:	jsr     _frameRoutine
 ;
 ; while (playing)
 ;
-L01F2:	lda     _playing
-	bne     L01F0
+L0209:	lda     _playing
+	bne     L0207
+;
+; if (gameover) break;
+;
+	lda     _gameover
+	bne     L0540
+;
+; for (level = 0; level < sizeof(LEVEL_NB); ++level)
+;
+	inc     _level
+	jmp     L053C
+;
+; if (gameover == FALSE) writeWinToPPU();
+;
+L0540:	lda     _gameover
+	cmp     #$00
+	jeq     _writeWinToPPU
 ;
 ; }
 ;

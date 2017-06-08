@@ -1,6 +1,7 @@
-const unsigned char PAUSE_TEXT[]={"PAUSED"};
-const unsigned char GAME_OVER[]={"GAME OVER"};
-const unsigned char WIN[]={"YOU WIN"};
+const unsigned char PAUSE_STR[]={"PAUSED"};
+const unsigned char GAME_OVER_STR[]={"GAME  OVER"};
+const unsigned char WIN_STR[]={"YOU  WIN"};
+const unsigned char LEVEL_STR[]={"LEVEL  "};
 const unsigned char PADDLE[]={1, 2, 2, 1};
 
 const unsigned char BRICKS_X[]={
@@ -15,15 +16,15 @@ const unsigned char BRICKS_X[]={
 	00,32,64,96,	128,160,192,224
 };
 const unsigned char BRICKS_Y[]={
-	00,00,00,00,	00,00,00,00,
-	16,16,16,16,	16,16,16,16,
-	32,32,32,32,	32,32,32,32,
-	64,64,64,64,	64,64,64,64,
+	8,8,8,8,	8,8,8,8,
+	24,24,24,24,	24,24,24,24,
+	40,40,40,40,	40,40,40,40,
+	56,56,56,56,	56,56,56,56,
 
-	80,80,80,80,	80,80,80,80,
-	96,96,96,96,	96,96,96,96,
-	112,112,112,112,	112,112,112,112,
-	128,128,128,128,	128,128,128,128
+	72,72,72,72,	72,72,72,72,
+	88,88,88,88,	88,88,88,88,
+	104,104,104,104,	104,104,104,104,
+	120,120,120,120,	120,120,120,120
 };
 const unsigned char HBYTE_ADDRESSES[]={
 	0x20,0x20,0x20,0x20,	0x20,0x20,0x20,0x20,

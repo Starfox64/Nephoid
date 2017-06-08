@@ -64,26 +64,29 @@ unsigned char FrameCounter;
 unsigned char index;
 unsigned char index2;
 
-//just used vars
 unsigned char X;
 unsigned char Y;
 
-unsigned char xPaddle = 0x0;
-unsigned char yPaddle = 0xD0;
-unsigned char dirPaddle = E;
-unsigned char speedPaddle = 4;
+unsigned char level;
 
-unsigned char xBall = 0x0C;
-unsigned char yBall = 0xC8;
-unsigned char dirBall = E;
-unsigned char speedBall = 2;
+unsigned char xPaddle;
+unsigned char yPaddle;
+unsigned char dirPaddle;
+unsigned char speedPaddle;
+
+unsigned char xBall;
+unsigned char yBall;
+unsigned char dirBall;
+unsigned char speedBall;
 
 unsigned char inputStatus;
 
-unsigned char playing = TRUE;
-unsigned char launched = FALSE;
-unsigned char paused = FALSE;
-unsigned char pauseTransition = FALSE;
+
+unsigned char gameover = FALSE;
+unsigned char playing;
+unsigned char launched;
+unsigned char paused;
+unsigned char pauseTransition;
 
 #include "DATA.c"
 
@@ -113,28 +116,46 @@ void waitVBlank(void);
 
 void main (void)
 {
+
 	turnScreenOff();
 	loadPalette();
 	resetScrollRegister();
 	turnScreenOn();
 
-
-	writeBackgroundToPPU();
-
-	while (playing)
+	for (level = 0; level < sizeof(LEVEL_NB); ++level)
 	{
-		inputListener();
-		if (pauseTransition == TRUE && FrameCounter >= 30)
-			pauseTransition = FALSE;
+		xPaddle = 0x0;
+		yPaddle = 0xD0;
+		dirPaddle = E;
+		speedPaddle = 4;
 
-		if (paused == FALSE)
+		xBall = 0x0C;
+		yBall = 0xC8;
+		dirBall = E;
+		speedBall = 2;
+		playing = TRUE;
+		launched = FALSE;
+		paused = FALSE;
+		pauseTransition = FALSE;
+		writeBackgroundToPPU();
+
+		while (playing)
 		{
-			updatePos();
-			spriteCollision();
-			writeSpritesToPPU();
+			inputListener();
+			if (pauseTransition == TRUE && FrameCounter >= 30)
+				pauseTransition = FALSE;
+
+			if (paused == FALSE)
+			{
+				updatePos();
+				spriteCollision();
+				writeSpritesToPPU();
+			}
+			frameRoutine();
 		}
-		frameRoutine();
+		if (gameover) break;
 	}
+	if (gameover == FALSE) writeWinToPPU();
 }
 
 void inputListener(void)
@@ -224,6 +245,7 @@ void spriteCollision(void)
 			if (yBall >= BALL_MAX_Y)
 			{
 				playing = FALSE;
+				gameover = TRUE;
 				writeGameOverToPPU();
 			}
 			else if (xBall >= BALL_MAX_X) dirBall = SW;
@@ -232,6 +254,7 @@ void spriteCollision(void)
 			if (yBall >= BALL_MAX_Y)
 			{
 				playing = FALSE;
+				gameover = TRUE;
 				writeGameOverToPPU();
 			}
 			else if (xBall <= 0) dirBall = SE;
@@ -244,19 +267,18 @@ void spriteCollision(void)
 	}
 
 	//	BALL >< BRICKS
-	for (index = 0; index < sizeof(LEVEL[0]); ++index)
+	for (index = 0; index < sizeof(LEVEL[level]); ++index)
 	{
-		if (LEVEL[0][index] == FALSE)
+		if (LEVEL[level][index] == FALSE)
 		{
 			if (xBall <= BRICKS_X[index] + 32 && xBall + 8 >= BRICKS_X[index]
 				&& yBall < BRICKS_Y[index] + 16 && yBall + 8 >= BRICKS_Y[index])
 			{
-				LEVEL[0][index] = TRUE;
+				LEVEL[level][index] = TRUE;
 				switch (dirBall)
 				{
 					case NE:
-						if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index] && yBall < BRICKS_Y[index] + 16 && xBall + 8 ) dirBall = NW;
-						else if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index]) dirBall = NW;
+						if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index]) dirBall = NW;
 						else dirBall = SE;
 						break;
 					case SE:
@@ -277,8 +299,8 @@ void spriteCollision(void)
 				waitVBlank();
 				writeBrickToPPU();
 				resetScrollRegister();
-				--LEVEL_NB[0];
-				if (LEVEL_NB[0] == 0) {playing = FALSE; writeWinToPPU();}
+				--LEVEL_NB[level];
+				if (LEVEL_NB[level] == 0) {playing = FALSE;}
 				break;
 			}
 		}
@@ -348,7 +370,7 @@ void writeBrickToPPU(void)
 	PPU_ADDRESS_REGISTER = X;
 	PPU_ADDRESS_REGISTER = Y;
 
-	if (LEVEL[0][index] == FALSE)
+	if (LEVEL[level][index] == FALSE)
 	{
 		PPU_DATA_REGISTER = 0x80;
 		PPU_DATA_REGISTER = 0x81;
@@ -369,7 +391,7 @@ void writeBrickToPPU(void)
 	PPU_ADDRESS_REGISTER = X;
 	PPU_ADDRESS_REGISTER = Y;
 
-	if (LEVEL[0][index] == FALSE)
+	if (LEVEL[level][index] == FALSE)
 	{
 		PPU_DATA_REGISTER = 0x90;
 		PPU_DATA_REGISTER = 0x91;
@@ -389,28 +411,30 @@ void writeGameOverToPPU(void)
 {
 	waitVBlank();
 	PPU_ADDRESS_REGISTER = 0x22;
-	PPU_ADDRESS_REGISTER = 0x8C;
-	for (index = 0; index < sizeof(GAME_OVER); ++index)
-		PPU_DATA_REGISTER = GAME_OVER[index];
+	PPU_ADDRESS_REGISTER = 0x8B;
+	for (index = 0; index < sizeof(GAME_OVER_STR); ++index)
+		PPU_DATA_REGISTER = GAME_OVER_STR[index];
+	resetScrollRegister();
 }
 void writeWinToPPU(void)
 {
 	waitVBlank();
 	PPU_ADDRESS_REGISTER = 0x22;
-	PPU_ADDRESS_REGISTER = 0x8D;
-	for (index = 0; index < sizeof(WIN); ++index)
-		PPU_DATA_REGISTER = WIN[index];
+	PPU_ADDRESS_REGISTER = 0x8C;
+	for (index = 0; index < sizeof(WIN_STR); ++index)
+		PPU_DATA_REGISTER = WIN_STR[index];
+	resetScrollRegister();
 }
 
 void writePauseToPPU(void)
 {
 	waitVBlank();
 	PPU_ADDRESS_REGISTER = 0x23;
-	PPU_ADDRESS_REGISTER = 0x88;
-	for (index = 0; index < sizeof(PAUSE_TEXT); ++index)
+	PPU_ADDRESS_REGISTER = 0x8D;
+	for (index = 0; index < sizeof(PAUSE_STR); ++index)
 	{
 		if (paused == FALSE) PPU_DATA_REGISTER = 0;
-		else PPU_DATA_REGISTER = PAUSE_TEXT[index];
+		else PPU_DATA_REGISTER = PAUSE_STR[index];
 	}
 	resetScrollRegister();
 }
@@ -422,12 +446,19 @@ void writeBackgroundToPPU(void)
 	resetScrollRegister();
 
 	// BRICKS
-	for (index = 0; index < sizeof(LEVEL[0]); ++index)
+	for (index = 0; index < sizeof(LEVEL[level]); ++index)
 	{
 		X = HBYTE_ADDRESSES[index];
 		Y = LBYTE_ADDRESSES[index];
 		writeBrickToPPU();
 	}
+
+	//Level number
+	PPU_ADDRESS_REGISTER = 0x22;
+	PPU_ADDRESS_REGISTER = 0x8C;
+	for (index = 0; index < sizeof(LEVEL_STR); ++index)
+		PPU_DATA_REGISTER = LEVEL_STR[index];
+	PPU_DATA_REGISTER = level + '1';
 
 	resetScrollRegister();
 	turnScreenOn();
