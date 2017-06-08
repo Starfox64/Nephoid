@@ -1,33 +1,15 @@
-/*	$2000	PPU data address 0 : $2020
-	$2020	-30 rows of 32 tiles each
-	$2040
-	$2060
-	$2080
-	$20A0
-	$20C0
-	$20E0
-	$2100
-	... + 7 lines
-	$2200
-	... + 7 lines
-	$2300
-	...
-	$2380 last line displayed on emulator
-
-	attribute table : $23C0-$23FF
-*/
+//	registers for the CPU and PPU. Source : http://wiki.nesdev.com/w/index.php/PPU_registers
 #define PPU_CTRL_REGISTER		*((unsigned char*)0x2000)
 #define PPU_MASK_REGISTER		*((unsigned char*)0x2001)
 #define PPU_STATUS_REGISTER		*((unsigned char*)0x2002)
 #define OAM_ADDRESS_REGISTER	*((unsigned char*)0x2003)
-#define OAM_DATA_REGISTER		*((unsigned char*)0x2004)
 #define SCROLL_REGISTER			*((unsigned char*)0x2005)
 #define PPU_ADDRESS_REGISTER	*((unsigned char*)0x2006)
 #define PPU_DATA_REGISTER		*((unsigned char*)0x2007)
 #define OAM_DMA_REGISTER		*((unsigned char*)0x4014)
 #define JOYPAD1_REGISTER		*((unsigned char*)0x4016)
-#define JOYPAD2_REGISTER		*((unsigned char*)0x4017)
 
+//	Joypad buttons
 #define JP1_A		128
 #define JP1_B		64
 #define JP1_SELECT	32
@@ -37,12 +19,14 @@
 #define JP1_LEFT	2
 #define JP1_RIGHT	1
 
+//	sprite attribute values for flipping
 #define SPRITE_VERTICAL_FLIP 64
 #define SPRITE_HORIZONTAL_FLIP 128
 
 #define TRUE	1
 #define FALSE	0
 
+//	cardinal directions. Used by both paddle and ball
 #define NESW	0
 #define N		1
 #define NE		2
@@ -53,6 +37,7 @@
 #define W		7
 #define NW		8
 
+//	limit where ball go off-screen
 #define BALL_MAX_X	247
 #define BALL_MAX_Y	230
 
@@ -90,7 +75,7 @@ unsigned char pauseTransition;
 
 #include "DATA.c"
 
-#pragma bss-name(push, "OAM")
+#pragma bss-name(push, "OAM")	//sprite-only memory space
 unsigned char SPRITE_TABLE[256];
 
 
@@ -98,16 +83,16 @@ unsigned char SPRITE_TABLE[256];
 void updatePos(void);
 void inputListener(void);
 void spriteCollision(void);
-
-	//utils functions
 void frameRoutine(void);
 void readInput(void);
+
 void writeBrickToPPU(void);
 void writeBackgroundToPPU(void);
 void writePauseToPPU(void);
 void writeGameOverToPPU(void);
 void writeWinToPPU(void);
 void writeSpritesToPPU(void);
+
 void turnScreenOff(void);
 void turnScreenOn(void);
 void loadPalette(void);
@@ -143,6 +128,7 @@ void main (void)
 		{
 			inputListener();
 			if (pauseTransition == TRUE && FrameCounter >= 30)
+				//FrameCounter is auto incremented in nmi interrupt, see reset.s line 134
 				pauseTransition = FALSE;
 
 			if (paused == FALSE)
@@ -326,10 +312,10 @@ void writeSpritesToPPU(void)
 	//	y coord
 	SPRITE_TABLE[index2] = yBall;
 	++index2;
-	//	tile
+	//	which tile (see .chr)
 	SPRITE_TABLE[index2] = 0;
 	++index2;
-	//	attributes
+	//	attributes (which palette + flips)
 	SPRITE_TABLE[index2] = 3;
 	++index2;
 	//	x coord
@@ -339,28 +325,23 @@ void writeSpritesToPPU(void)
 
 void readInput(void)
 {
-	unsigned char test = 0;//TO DELETE
-	// unsigned char address = 0;//TO DELETE
 	inputStatus = 0;
+	//	enter 1 and 0 to joypad register before accessing the values
 	JOYPAD1_REGISTER = 1;
 	JOYPAD1_REGISTER = 0;
 	for (index = 8; index > 0; --index)
-	{
-		test = (JOYPAD1_REGISTER & 1);
-		// PPU_ADDRESS_REGISTER= 0x20;//TO DELETE
-		// PPU_ADDRESS_REGISTER= 0x30 + address;//TO DELETE
-		// PPU_DATA_REGISTER = test + '0';//TO DELETE
-		inputStatus = inputStatus | (test << index-1);
-		// ++address;//TO DELETE
-	}
-	// resetScrollRegister();//TO DELETE
+		//	shifting each bit of data (button on/off) to the left side
+		inputStatus = inputStatus | ((JOYPAD1_REGISTER & 1) << index-1);
 }
 
 void frameRoutine(void)
 {
+	//	waitVBlank gives a 60 FPS clock
 	waitVBlank();
+	//render the sprites
 	OAM_ADDRESS_REGISTER = 0;
 	OAM_DMA_REGISTER = 2;
+	//prev instructions need a scroll reset
 	resetScrollRegister();
 }
 
@@ -379,6 +360,7 @@ void writeBrickToPPU(void)
 	}
 	else
 	{
+		//0x83 was a defined sprite, and might be in the future
 		PPU_DATA_REGISTER = 0x83;
 		PPU_DATA_REGISTER = 0x83;
 		PPU_DATA_REGISTER = 0x83;
@@ -442,6 +424,7 @@ void writePauseToPPU(void)
 void writeBackgroundToPPU(void)
 {
 	waitVBlank();
+	//	writing while screen on is way longer than off
 	turnScreenOff();
 	resetScrollRegister();
 
@@ -481,11 +464,16 @@ void loadPalette(void)
 {
 	PPU_ADDRESS_REGISTER= 0x3f;
 	PPU_ADDRESS_REGISTER= 0x00;
+	//	we do this twice for the following reason :
+	//	PALETTE contains 4 differents colorsets,
+	//	but NES has 4 dedicated to background and 4 dedicated to sprites
+	//	as we're not using many colors, we can afford using the 4 colorsets twice
 	for(index = 0; index < sizeof(PALETTE); ++index)
 		PPU_DATA_REGISTER = PALETTE[index];
 	for(index = 0; index < sizeof(PALETTE); ++index)
 		PPU_DATA_REGISTER = PALETTE[index];
 
+	//	this tells which colorset to use for the background
 	PPU_ADDRESS_REGISTER = 0x23;
 	PPU_ADDRESS_REGISTER = 0xC0;
 	for( index = 0; index < sizeof(Attrib_Table); ++index )
@@ -502,6 +490,7 @@ void resetScrollRegister(void)
 
 void waitVBlank(void)
 {
+	//	NMI flah will be incremented by NMI interrupt in reset.s
 	while (NMIFlag == 0);
 	NMIFlag = 0;
 }
