@@ -135,6 +135,70 @@ _LEVEL:
 	.byte	$00
 	.byte	$01
 	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
 	.byte	$01
 	.byte	$00
 	.byte	$00
@@ -196,9 +260,75 @@ _LEVEL:
 	.byte	$01
 	.byte	$01
 	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$01
+	.byte	$00
+	.byte	$00
+	.byte	$00
+	.byte	$01
 	.byte	$01
 _LEVEL_NB:
 	.byte	$24
+	.byte	$1C
+	.byte	$22
 	.byte	$22
 
 .segment	"RODATA"
@@ -525,22 +655,22 @@ _Attrib_Table:
 	.byte	$AA
 	.byte	$AA
 	.byte	$AA
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
-	.byte	$55
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
+	.byte	$AA
 _PALETTE:
 	.byte	$2D
 	.byte	$20
@@ -642,10 +772,10 @@ _SPRITE_TABLE:
 ;
 	lda     _dirPaddle
 	cmp     #$03
-	bne     L04DA
+	bne     L055C
 	lda     _xPaddle
 	cmp     #$DF
-	bcs     L04DA
+	bcs     L055C
 ;
 ; xPaddle += speedPaddle;
 ;
@@ -657,18 +787,18 @@ _SPRITE_TABLE:
 ; if (launched == FALSE) xBall += speedPaddle;
 ;
 	lda     _launched
-	bne     L04DD
+	bne     L055F
 	lda     _speedPaddle
 	clc
 ;
 ; else if (dirPaddle == W && xPaddle > 0) {
 ;
-	jmp     L04E2
-L04DA:	lda     _dirPaddle
+	jmp     L0564
+L055C:	lda     _dirPaddle
 	cmp     #$07
-	bne     L04DD
+	bne     L055F
 	lda     _xPaddle
-	beq     L04DD
+	beq     L055F
 ;
 ; xPaddle -= speedPaddle;
 ;
@@ -681,18 +811,18 @@ L04DA:	lda     _dirPaddle
 ; if (launched == FALSE) xBall -= speedPaddle;
 ;
 	lda     _launched
-	bne     L04DD
+	bne     L055F
 	lda     _speedPaddle
 	eor     #$FF
 	sec
-L04E2:	adc     _xBall
+L0564:	adc     _xBall
 	sta     _xBall
 ;
 ; if (launched == TRUE) {
 ;
-L04DD:	lda     _launched
+L055F:	lda     _launched
 	cmp     #$01
-	bne     L026D
+	bne     L02EF
 ;
 ; switch (dirBall) {
 ;
@@ -701,27 +831,27 @@ L04DD:	lda     _launched
 ; }
 ;
 	cmp     #$02
-	beq     L04DE
+	beq     L0560
 	cmp     #$04
-	beq     L04DF
+	beq     L0561
 	cmp     #$06
-	beq     L04E0
+	beq     L0562
 	cmp     #$08
-	beq     L04E1
+	beq     L0563
 	rts
 ;
 ; xBall += speedBall;
 ;
-L04DE:	lda     _speedBall
+L0560:	lda     _speedBall
 	clc
 ;
 ; break;
 ;
-	jmp     L04E8
+	jmp     L056A
 ;
 ; xBall += speedBall;
 ;
-L04DF:	lda     _speedBall
+L0561:	lda     _speedBall
 	clc
 	adc     _xBall
 	sta     _xBall
@@ -733,11 +863,11 @@ L04DF:	lda     _speedBall
 ;
 ; break;
 ;
-	jmp     L04E3
+	jmp     L0565
 ;
 ; xBall -= speedBall;
 ;
-L04E0:	lda     _speedBall
+L0562:	lda     _speedBall
 	eor     #$FF
 	sec
 	adc     _xBall
@@ -750,14 +880,14 @@ L04E0:	lda     _speedBall
 ;
 ; break;
 ;
-	jmp     L04E3
+	jmp     L0565
 ;
 ; xBall -= speedBall;
 ;
-L04E1:	lda     _speedBall
+L0563:	lda     _speedBall
 	eor     #$FF
 	sec
-L04E8:	adc     _xBall
+L056A:	adc     _xBall
 	sta     _xBall
 ;
 ; yBall -= speedBall;
@@ -765,12 +895,12 @@ L04E8:	adc     _xBall
 	lda     _speedBall
 	eor     #$FF
 	sec
-L04E3:	adc     _yBall
+L0565:	adc     _yBall
 	sta     _yBall
 ;
 ; }
 ;
-L026D:	rts
+L02EF:	rts
 
 .endproc
 
@@ -796,19 +926,19 @@ L026D:	rts
 ;
 ; && pauseTransition == FALSE)
 ;
-	beq     L04EE
+	beq     L0570
 	lda     _pauseTransition
-	bne     L04EE
+	bne     L0570
 ;
 ; paused = (paused == TRUE)?FALSE:TRUE;
 ;
 	lda     _paused
 	cmp     #$01
-	bne     L04EC
+	bne     L056E
 	lda     #$00
-	jmp     L04ED
-L04EC:	lda     #$01
-L04ED:	sta     _paused
+	jmp     L056F
+L056E:	lda     #$01
+L056F:	sta     _paused
 ;
 ; pauseTransition = TRUE;
 ;
@@ -826,14 +956,14 @@ L04ED:	sta     _paused
 ;
 ; if (paused == FALSE)
 ;
-L04EE:	lda     _paused
-	bne     L024B
+L0570:	lda     _paused
+	bne     L02CD
 ;
 ; if ((inputStatus & JP1_LEFT) != 0)
 ;
 	lda     _inputStatus
 	and     #$02
-	beq     L04EF
+	beq     L0571
 ;
 ; dirPaddle = W;
 ;
@@ -843,16 +973,16 @@ L04EE:	lda     _paused
 ; if (launched == FALSE) dirBall = NW;
 ;
 	lda     _launched
-	bne     L04F2
+	bne     L0574
 	lda     #$08
 	sta     _dirBall
 ;
 ; else if ((inputStatus & JP1_RIGHT) != 0) //255-size of paddle
 ;
-	jmp     L04F2
-L04EF:	lda     _inputStatus
+	jmp     L0574
+L0571:	lda     _inputStatus
 	and     #$01
-	beq     L04F1
+	beq     L0573
 ;
 ; dirPaddle = E;
 ;
@@ -862,32 +992,32 @@ L04EF:	lda     _inputStatus
 ; if (launched == FALSE) dirBall = NE;
 ;
 	lda     _launched
-	bne     L04F2
+	bne     L0574
 	lda     #$02
 	sta     _dirBall
 ;
 ; else dirPaddle = NESW;
 ;
-	jmp     L04F2
-L04F1:	sta     _dirPaddle
+	jmp     L0574
+L0573:	sta     _dirPaddle
 ;
 ; if ((inputStatus & JP1_A) != 0 && launched == FALSE)
 ;
-L04F2:	lda     _inputStatus
+L0574:	lda     _inputStatus
 	and     #$80
-	beq     L04F4
+	beq     L0576
 	lda     _launched
-	beq     L04F5
-L04F4:	rts
+	beq     L0577
+L0576:	rts
 ;
 ; launched = TRUE;
 ;
-L04F5:	lda     #$01
+L0577:	lda     #$01
 	sta     _launched
 ;
 ; }
 ;
-L024B:	rts
+L02CD:	rts
 
 .endproc
 
@@ -908,12 +1038,12 @@ L024B:	rts
 	lda     _xPaddle
 	clc
 	adc     #$20
-	bcc     L0289
+	bcc     L030B
 	inx
-L0289:	cmp     _xBall
+L030B:	cmp     _xBall
 	txa
 	sbc     #$00
-	bcc     L0502
+	bcc     L0584
 	lda     _xPaddle
 	jsr     pusha0
 	lda     _xBall
@@ -922,97 +1052,97 @@ L0289:	cmp     _xBall
 ;
 	clc
 	adc     #$08
-	bcc     L028B
+	bcc     L030D
 	ldx     #$01
-L028B:	jsr     tosicmp
-	beq     L04FB
-	bcs     L0502
-L04FB:	lda     _yPaddle
+L030D:	jsr     tosicmp
+	beq     L057D
+	bcs     L0584
+L057D:	lda     _yPaddle
 	jsr     pusha0
 	lda     _yBall
 	clc
 	adc     #$08
-	bcc     L028C
+	bcc     L030E
 	ldx     #$01
-L028C:	jsr     tosicmp
-	beq     L04FC
-	bcs     L0502
-L04FC:	ldx     #$00
+L030E:	jsr     tosicmp
+	beq     L057E
+	bcs     L0584
+L057E:	ldx     #$00
 	lda     _yPaddle
 	clc
 	adc     #$08
-	bcc     L028D
+	bcc     L030F
 	inx
-L028D:	cmp     _yBall
+L030F:	cmp     _yBall
 	txa
 	sbc     #$00
-	bcc     L0502
+	bcc     L0584
 ;
 ; if (dirBall == SE) dirBall = NE;
 ;
 	lda     _dirBall
 	cmp     #$04
-	bne     L0501
+	bne     L0583
 	lda     #$02
 ;
 ; else dirBall = NW;
 ;
-	jmp     L04F8
-L0501:	lda     #$08
-L04F8:	sta     _dirBall
+	jmp     L057A
+L0583:	lda     #$08
+L057A:	sta     _dirBall
 ;
 ; switch (dirBall) {
 ;
-L0502:	lda     _dirBall
+L0584:	lda     _dirBall
 ;
 ; }
 ;
 	cmp     #$02
-	beq     L0503
+	beq     L0585
 	cmp     #$04
-	beq     L0509
+	beq     L058B
 	cmp     #$06
-	beq     L050B
+	beq     L058D
 	cmp     #$08
-	beq     L050D
-	jmp     L0512
+	beq     L058F
+	jmp     L0594
 ;
 ; if (xBall >= BALL_MAX_X && yBall <= 8) dirBall = SW;
 ;
-L0503:	lda     _xBall
+L0585:	lda     _xBall
 	cmp     #$F7
-	bcc     L0507
+	bcc     L0589
 	lda     _yBall
 	cmp     #$09
-	bcs     L0507
+	bcs     L0589
 	lda     #$06
 ;
 ; else if (yBall <= 8) dirBall = SE;
 ;
-	jmp     L04F9
-L0507:	lda     _yBall
+	jmp     L057B
+L0589:	lda     _yBall
 	cmp     #$09
-	bcs     L0508
+	bcs     L058A
 	lda     #$04
 ;
 ; else if (xBall >= BALL_MAX_X) dirBall = NW;
 ;
-	jmp     L04F9
-L0508:	lda     _xBall
+	jmp     L057B
+L058A:	lda     _xBall
 	cmp     #$F7
 	lda     #$00
-	bcc     L0513
+	bcc     L0595
 	lda     #$08
 ;
 ; break;
 ;
-	jmp     L04F9
+	jmp     L057B
 ;
 ; if (yBall >= BALL_MAX_Y)
 ;
-L0509:	lda     _yBall
+L058B:	lda     _yBall
 	cmp     #$E6
-	bcc     L050A
+	bcc     L058C
 ;
 ; playing = FALSE;
 ;
@@ -1030,22 +1160,22 @@ L0509:	lda     _yBall
 ;
 ; else if (xBall >= BALL_MAX_X) dirBall = SW;
 ;
-	jmp     L0512
-L050A:	lda     _xBall
+	jmp     L0594
+L058C:	lda     _xBall
 	cmp     #$F7
 	lda     #$00
-	bcc     L0513
+	bcc     L0595
 	lda     #$06
 ;
 ; break;
 ;
-	jmp     L04F9
+	jmp     L057B
 ;
 ; if (yBall >= BALL_MAX_Y)
 ;
-L050B:	lda     _yBall
+L058D:	lda     _yBall
 	cmp     #$E6
-	bcc     L050C
+	bcc     L058E
 ;
 ; playing = FALSE;
 ;
@@ -1063,47 +1193,47 @@ L050B:	lda     _yBall
 ;
 ; else if (xBall <= 0) dirBall = SE;
 ;
-	jmp     L0512
-L050C:	lda     _xBall
-	bne     L0512
+	jmp     L0594
+L058E:	lda     _xBall
+	bne     L0594
 	lda     #$04
 ;
 ; break;
 ;
-	jmp     L04F9
+	jmp     L057B
 ;
 ; if (xBall <= 0 && yBall <= 8) dirBall = SE;
 ;
-L050D:	lda     _xBall
-	bne     L0510
+L058F:	lda     _xBall
+	bne     L0592
 	lda     _yBall
 	cmp     #$09
-	bcs     L0510
+	bcs     L0592
 	lda     #$04
 ;
 ; else if (yBall <= 8) dirBall = SW;
 ;
-	jmp     L04F9
-L0510:	lda     _yBall
+	jmp     L057B
+L0592:	lda     _yBall
 	cmp     #$09
-	bcs     L0511
+	bcs     L0593
 	lda     #$06
 ;
 ; else if (xBall <= 0) dirBall = NE;
 ;
-	jmp     L04F9
-L0511:	lda     _xBall
-	bne     L0512
+	jmp     L057B
+L0593:	lda     _xBall
+	bne     L0594
 	lda     #$02
-L04F9:	sta     _dirBall
+L057B:	sta     _dirBall
 ;
 ; for (index = 0; index < sizeof(LEVEL[level]); ++index)
 ;
-L0512:	lda     #$00
-L0513:	sta     _index
-L0514:	lda     _index
+L0594:	lda     #$00
+L0595:	sta     _index
+L0596:	lda     _index
 	cmp     #$40
-	bcc     L051E
+	bcc     L05A0
 ;
 ; }
 ;
@@ -1111,7 +1241,7 @@ L0514:	lda     _index
 ;
 ; if (LEVEL[level][index] == FALSE)
 ;
-L051E:	ldx     #$00
+L05A0:	ldx     #$00
 	lda     _level
 	jsr     aslax4
 	jsr     aslax2
@@ -1123,7 +1253,7 @@ L051E:	ldx     #$00
 	sta     ptr1+1
 	ldy     _index
 	lda     (ptr1),y
-	jne     L051D
+	jne     L059F
 ;
 ; if (xBall <= BRICKS_X[index] + 32 && xBall + 8 >= BRICKS_X[index]
 ;
@@ -1133,46 +1263,46 @@ L051E:	ldx     #$00
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L02EB
+	bcc     L036D
 	ldx     #$01
-L02EB:	jsr     tosicmp
-	beq     L04FD
-	jcs     L051D
-L04FD:	ldx     #$00
+L036D:	jsr     tosicmp
+	beq     L057F
+	jcs     L059F
+L057F:	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L02ED
+	bcc     L036F
 	inx
-L02ED:	jsr     pushax
+L036F:	jsr     pushax
 	ldy     _index
 	lda     _BRICKS_X,y
 ;
 ; && yBall < BRICKS_Y[index] + 16 && yBall + 8 >= BRICKS_Y[index])
 ;
 	jsr     tosicmp0
-	jcc     L051D
+	jcc     L059F
 	lda     _yBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_Y,y
 	clc
 	adc     #$10
-	bcc     L02F2
+	bcc     L0374
 	ldx     #$01
-L02F2:	jsr     tosicmp
-	jcs     L051D
+L0374:	jsr     tosicmp
+	jcs     L059F
 	ldx     #$00
 	lda     _yBall
 	clc
 	adc     #$08
-	bcc     L02F3
+	bcc     L0375
 	inx
-L02F3:	jsr     pushax
+L0375:	jsr     pushax
 	ldy     _index
 	lda     _BRICKS_Y,y
 	jsr     tosicmp0
-	jcc     L051D
+	jcc     L059F
 ;
 ; LEVEL[level][index] = TRUE;
 ;
@@ -1189,9 +1319,9 @@ L02F3:	jsr     pushax
 	tya
 	clc
 	adc     _index
-	bcc     L04F7
+	bcc     L0579
 	inx
-L04F7:	sta     ptr1
+L0579:	sta     ptr1
 	stx     ptr1+1
 	lda     #$01
 	ldy     #$00
@@ -1204,151 +1334,151 @@ L04F7:	sta     ptr1
 ; }
 ;
 	cmp     #$02
-	beq     L0515
+	beq     L0597
 	cmp     #$04
-	beq     L0517
+	beq     L0599
 	cmp     #$06
-	beq     L0519
+	beq     L059B
 	cmp     #$08
-	jeq     L051B
-	jmp     L02FD
+	jeq     L059D
+	jmp     L037F
 ;
 ; if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index]) dirBall = NW;
 ;
-L0515:	lda     _xBall
+L0597:	lda     _xBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_X,y
 	jsr     tosicmp0
-	bcs     L0516
+	bcs     L0598
 	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L0305
+	bcc     L0387
 	inx
-L0305:	jsr     pushax
+L0387:	jsr     pushax
 	ldy     _index
 	lda     _BRICKS_X,y
 	jsr     tosicmp0
-	bcc     L0516
+	bcc     L0598
 	lda     #$08
 ;
 ; else dirBall = SE;
 ;
-	jmp     L04FA
-L0516:	lda     #$04
+	jmp     L057C
+L0598:	lda     #$04
 ;
 ; break;
 ;
-	jmp     L04FA
+	jmp     L057C
 ;
 ; if (xBall < BRICKS_X[index] && xBall + 8 >= BRICKS_X[index]) dirBall = SW;
 ;
-L0517:	lda     _xBall
+L0599:	lda     _xBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_X,y
 	jsr     tosicmp0
-	bcs     L0518
+	bcs     L059A
 	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L0315
+	bcc     L0397
 	inx
-L0315:	jsr     pushax
+L0397:	jsr     pushax
 	ldy     _index
 	lda     _BRICKS_X,y
 	jsr     tosicmp0
-	jcs     L051C
+	jcs     L059E
 ;
 ; else dirBall = NE;
 ;
-L0518:	lda     #$02
+L059A:	lda     #$02
 ;
 ; break;
 ;
-	jmp     L04FA
+	jmp     L057C
 ;
 ; if (xBall < BRICKS_X[index] + 32 && xBall + 8 >= BRICKS_X[index] + 32) dirBall = SE;
 ;
-L0519:	lda     _xBall
+L059B:	lda     _xBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L0324
+	bcc     L03A6
 	ldx     #$01
-L0324:	jsr     tosicmp
-	bcs     L051A
+L03A6:	jsr     tosicmp
+	bcs     L059C
 	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L0326
+	bcc     L03A8
 	inx
-L0326:	jsr     pushax
+L03A8:	jsr     pushax
 	ldy     _index
 	ldx     #$00
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L0329
+	bcc     L03AB
 	inx
-L0329:	jsr     tosicmp
-	bcc     L051A
+L03AB:	jsr     tosicmp
+	bcc     L059C
 	lda     #$04
 ;
 ; else dirBall = NW;
 ;
-	jmp     L04FA
-L051A:	lda     #$08
+	jmp     L057C
+L059C:	lda     #$08
 ;
 ; break;
 ;
-	jmp     L04FA
+	jmp     L057C
 ;
 ; if (xBall < BRICKS_X[index] + 32 && xBall + 8 >= BRICKS_X[index] + 32) dirBall = NE;
 ;
-L051B:	lda     _xBall
+L059D:	lda     _xBall
 	jsr     pusha0
 	ldy     _index
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L0336
+	bcc     L03B8
 	ldx     #$01
-L0336:	jsr     tosicmp
-	bcs     L051C
+L03B8:	jsr     tosicmp
+	bcs     L059E
 	ldx     #$00
 	lda     _xBall
 	clc
 	adc     #$08
-	bcc     L0338
+	bcc     L03BA
 	inx
-L0338:	jsr     pushax
+L03BA:	jsr     pushax
 	ldy     _index
 	ldx     #$00
 	lda     _BRICKS_X,y
 	clc
 	adc     #$20
-	bcc     L033B
+	bcc     L03BD
 	inx
-L033B:	jsr     tosicmp
-	bcc     L051C
+L03BD:	jsr     tosicmp
+	bcc     L059E
 	lda     #$02
 ;
 ; else dirBall = SW;
 ;
-	jmp     L04FA
-L051C:	lda     #$06
-L04FA:	sta     _dirBall
+	jmp     L057C
+L059E:	lda     #$06
+L057C:	sta     _dirBall
 ;
 ; X = HBYTE_ADDRESSES[index];
 ;
-L02FD:	ldy     _index
+L037F:	ldy     _index
 	lda     _HBYTE_ADDRESSES,y
 	sta     _X
 ;
@@ -1376,9 +1506,9 @@ L02FD:	ldy     _index
 	ldx     #>(_LEVEL_NB)
 	clc
 	adc     _level
-	bcc     L034F
+	bcc     L03D1
 	inx
-L034F:	sta     ptr1
+L03D1:	sta     ptr1
 	stx     ptr1+1
 	ldy     #$00
 	lda     (ptr1),y
@@ -1390,7 +1520,7 @@ L034F:	sta     ptr1
 ;
 	ldy     _level
 	lda     _LEVEL_NB,y
-	bne     L02DA
+	bne     L035C
 	sta     _playing
 ;
 ; break;
@@ -1399,12 +1529,12 @@ L034F:	sta     ptr1
 ;
 ; for (index = 0; index < sizeof(LEVEL[level]); ++index)
 ;
-L051D:	inc     _index
-	jmp     L0514
+L059F:	inc     _index
+	jmp     L0596
 ;
 ; }
 ;
-L02DA:	rts
+L035C:	rts
 
 .endproc
 
@@ -1469,8 +1599,8 @@ L02DA:	rts
 ;
 	lda     #$08
 	sta     _index
-L051F:	lda     _index
-	beq     L039E
+L05A1:	lda     _index
+	beq     L0420
 ;
 ; inputStatus = inputStatus | ((JOYPAD1_REGISTER & 1) << index-1);
 ;
@@ -1482,9 +1612,9 @@ L051F:	lda     _index
 	sbc     #$01
 	tay
 	lda     ptr1
-L0520:	asl     a
+L05A2:	asl     a
 	dey
-	bpl     L0520
+	bpl     L05A2
 	ror     a
 	ora     _inputStatus
 	sta     _inputStatus
@@ -1492,11 +1622,11 @@ L0520:	asl     a
 ; for (index = 8; index > 0; --index)
 ;
 	dec     _index
-	jmp     L051F
+	jmp     L05A1
 ;
 ; }
 ;
-L039E:	rts
+L0420:	rts
 
 .endproc
 
@@ -1535,7 +1665,7 @@ L039E:	rts
 	sta     ptr1+1
 	ldy     _index
 	lda     (ptr1),y
-	bne     L0525
+	bne     L05A7
 ;
 ; PPU_DATA_REGISTER = 0x80;
 ;
@@ -1557,11 +1687,11 @@ L039E:	rts
 ;
 ; else
 ;
-	jmp     L0523
+	jmp     L05A5
 ;
 ; PPU_DATA_REGISTER = 0x83;
 ;
-L0525:	lda     #$83
+L05A7:	lda     #$83
 	sta     $2007
 ;
 ; PPU_DATA_REGISTER = 0x83;
@@ -1574,7 +1704,7 @@ L0525:	lda     #$83
 ;
 ; PPU_DATA_REGISTER = 0x83;
 ;
-L0523:	sta     $2007
+L05A5:	sta     $2007
 ;
 ; Y += 32;
 ;
@@ -1586,12 +1716,12 @@ L0523:	sta     $2007
 ; if (Y < 32) ++X;
 ;
 	cmp     #$20
-	bcs     L0526
+	bcs     L05A8
 	inc     _X
 ;
 ; PPU_ADDRESS_REGISTER = X;
 ;
-L0526:	lda     _X
+L05A8:	lda     _X
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = Y;
@@ -1613,7 +1743,7 @@ L0526:	lda     _X
 	sta     ptr1+1
 	ldy     _index
 	lda     (ptr1),y
-	bne     L0527
+	bne     L05A9
 ;
 ; PPU_DATA_REGISTER = 0x90;
 ;
@@ -1635,11 +1765,11 @@ L0526:	lda     _X
 ;
 ; else
 ;
-	jmp     L0524
+	jmp     L05A6
 ;
 ; PPU_DATA_REGISTER = 0x83;
 ;
-L0527:	lda     #$83
+L05A9:	lda     #$83
 	sta     $2007
 ;
 ; PPU_DATA_REGISTER = 0x83;
@@ -1652,7 +1782,7 @@ L0527:	lda     #$83
 ;
 ; PPU_DATA_REGISTER = 0x83;
 ;
-L0524:	sta     $2007
+L05A6:	sta     $2007
 ;
 ; }
 ;
@@ -1687,9 +1817,9 @@ L0524:	sta     $2007
 ;
 	lda     #$00
 	sta     _index
-L0528:	lda     _index
+L05AA:	lda     _index
 	cmp     #$40
-	bcs     L0529
+	bcs     L05AB
 ;
 ; X = HBYTE_ADDRESSES[index];
 ;
@@ -1710,11 +1840,11 @@ L0528:	lda     _index
 ; for (index = 0; index < sizeof(LEVEL[level]); ++index)
 ;
 	inc     _index
-	jmp     L0528
+	jmp     L05AA
 ;
 ; PPU_ADDRESS_REGISTER = 0x22;
 ;
-L0529:	lda     #$22
+L05AB:	lda     #$22
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = 0x8C;
@@ -1726,9 +1856,9 @@ L0529:	lda     #$22
 ;
 	lda     #$00
 	sta     _index
-L052A:	lda     _index
+L05AC:	lda     _index
 	cmp     #$08
-	bcs     L052B
+	bcs     L05AD
 ;
 ; PPU_DATA_REGISTER = LEVEL_STR[index];
 ;
@@ -1739,11 +1869,11 @@ L052A:	lda     _index
 ; for (index = 0; index < sizeof(LEVEL_STR); ++index)
 ;
 	inc     _index
-	jmp     L052A
+	jmp     L05AC
 ;
 ; PPU_DATA_REGISTER = level + '1';
 ;
-L052B:	lda     _level
+L05AD:	lda     _level
 	clc
 	adc     #$31
 	sta     $2007
@@ -1791,9 +1921,9 @@ L052B:	lda     _level
 ;
 	lda     #$00
 	sta     _index
-L052D:	lda     _index
+L05AF:	lda     _index
 	cmp     #$07
-	bcs     L0437
+	bcs     L04B9
 ;
 ; if (paused == FALSE) PPU_DATA_REGISTER = 0;
 ;
@@ -1801,19 +1931,19 @@ L052D:	lda     _index
 ;
 ; else PPU_DATA_REGISTER = PAUSE_STR[index];
 ;
-	beq     L052C
+	beq     L05AE
 	ldy     _index
 	lda     _PAUSE_STR,y
-L052C:	sta     $2007
+L05AE:	sta     $2007
 ;
 ; for (index = 0; index < sizeof(PAUSE_STR); ++index)
 ;
 	inc     _index
-	jmp     L052D
+	jmp     L05AF
 ;
 ; resetScrollRegister();
 ;
-L0437:	jmp     _resetScrollRegister
+L04B9:	jmp     _resetScrollRegister
 
 .endproc
 
@@ -1846,9 +1976,9 @@ L0437:	jmp     _resetScrollRegister
 ;
 	lda     #$00
 	sta     _index
-L052E:	lda     _index
+L05B0:	lda     _index
 	cmp     #$0B
-	bcs     L0409
+	bcs     L048B
 ;
 ; PPU_DATA_REGISTER = GAME_OVER_STR[index];
 ;
@@ -1859,11 +1989,11 @@ L052E:	lda     _index
 ; for (index = 0; index < sizeof(GAME_OVER_STR); ++index)
 ;
 	inc     _index
-	jmp     L052E
+	jmp     L05B0
 ;
 ; resetScrollRegister();
 ;
-L0409:	jmp     _resetScrollRegister
+L048B:	jmp     _resetScrollRegister
 
 .endproc
 
@@ -1896,9 +2026,9 @@ L0409:	jmp     _resetScrollRegister
 ;
 	lda     #$00
 	sta     _index
-L052F:	lda     _index
+L05B1:	lda     _index
 	cmp     #$09
-	bcs     L0420
+	bcs     L04A2
 ;
 ; PPU_DATA_REGISTER = WIN_STR[index];
 ;
@@ -1909,11 +2039,11 @@ L052F:	lda     _index
 ; for (index = 0; index < sizeof(WIN_STR); ++index)
 ;
 	inc     _index
-	jmp     L052F
+	jmp     L05B1
 ;
 ; resetScrollRegister();
 ;
-L0420:	jmp     _resetScrollRegister
+L04A2:	jmp     _resetScrollRegister
 
 .endproc
 
@@ -1936,9 +2066,9 @@ L0420:	jmp     _resetScrollRegister
 ; for (index = 0; index < sizeof(PADDLE); ++index)
 ;
 	sta     _index
-L0531:	lda     _index
+L05B3:	lda     _index
 	cmp     #$04
-	bcs     L035A
+	bcs     L03DC
 ;
 ; SPRITE_TABLE[index2] = yPaddle;
 ;
@@ -1956,9 +2086,9 @@ L0531:	lda     _index
 	ldx     #>(_SPRITE_TABLE)
 	clc
 	adc     _index2
-	bcc     L0369
+	bcc     L03EB
 	inx
-L0369:	sta     ptr1
+L03EB:	sta     ptr1
 	stx     ptr1+1
 	ldy     _index
 	lda     _PADDLE,y
@@ -1975,17 +2105,17 @@ L0369:	sta     ptr1
 	ldx     #>(_SPRITE_TABLE)
 	clc
 	adc     _index2
-	bcc     L0370
+	bcc     L03F2
 	inx
-L0370:	sta     ptr1
+L03F2:	sta     ptr1
 	stx     ptr1+1
 	lda     _index
 	cmp     #$03
-	bne     L0532
+	bne     L05B4
 	lda     #$40
-	jmp     L0376
-L0532:	tya
-L0376:	clc
+	jmp     L03F8
+L05B4:	tya
+L03F8:	clc
 	adc     #$01
 	sta     (ptr1),y
 ;
@@ -1999,9 +2129,9 @@ L0376:	clc
 	ldx     #>(_SPRITE_TABLE)
 	clc
 	adc     _index2
-	bcc     L037C
+	bcc     L03FE
 	inx
-L037C:	sta     ptr1
+L03FE:	sta     ptr1
 	stx     ptr1+1
 	lda     _index
 	asl     a
@@ -2018,11 +2148,11 @@ L037C:	sta     ptr1
 ; for (index = 0; index < sizeof(PADDLE); ++index)
 ;
 	inc     _index
-	jmp     L0531
+	jmp     L05B3
 ;
 ; SPRITE_TABLE[index2] = yBall;
 ;
-L035A:	ldy     _index2
+L03DC:	ldy     _index2
 	lda     _yBall
 	sta     _SPRITE_TABLE,y
 ;
@@ -2143,9 +2273,9 @@ L035A:	ldy     _index2
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	sta     _index
-L0533:	lda     _index
+L05B5:	lda     _index
 	cmp     #$10
-	bcs     L0534
+	bcs     L05B6
 ;
 ; PPU_DATA_REGISTER = PALETTE[index];
 ;
@@ -2156,15 +2286,15 @@ L0533:	lda     _index
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	inc     _index
-	jmp     L0533
+	jmp     L05B5
 ;
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
-L0534:	lda     #$00
+L05B6:	lda     #$00
 	sta     _index
-L0535:	lda     _index
+L05B7:	lda     _index
 	cmp     #$10
-	bcs     L0536
+	bcs     L05B8
 ;
 ; PPU_DATA_REGISTER = PALETTE[index];
 ;
@@ -2175,11 +2305,11 @@ L0535:	lda     _index
 ; for(index = 0; index < sizeof(PALETTE); ++index)
 ;
 	inc     _index
-	jmp     L0535
+	jmp     L05B7
 ;
 ; PPU_ADDRESS_REGISTER = 0x23;
 ;
-L0536:	lda     #$23
+L05B8:	lda     #$23
 	sta     $2006
 ;
 ; PPU_ADDRESS_REGISTER = 0xC0;
@@ -2191,9 +2321,9 @@ L0536:	lda     #$23
 ;
 	lda     #$00
 	sta     _index
-L0537:	lda     _index
+L05B9:	lda     _index
 	cmp     #$40
-	bcs     L04B5
+	bcs     L0537
 ;
 ; PPU_DATA_REGISTER = Attrib_Table[index];
 ;
@@ -2204,11 +2334,11 @@ L0537:	lda     _index
 ; for( index = 0; index < sizeof(Attrib_Table); ++index )
 ;
 	inc     _index
-	jmp     L0537
+	jmp     L05B9
 ;
 ; }
 ;
-L04B5:	rts
+L0537:	rts
 
 .endproc
 
@@ -2259,8 +2389,8 @@ L04B5:	rts
 ;
 ; while (NMIFlag == 0);
 ;
-L0538:	lda     _NMIFlag
-	beq     L0538
+L05BA:	lda     _NMIFlag
+	beq     L05BA
 ;
 ; NMIFlag = 0;
 ;
@@ -2304,9 +2434,9 @@ L0538:	lda     _NMIFlag
 ;
 	lda     #$00
 	sta     _level
-L0539:	lda     _level
-	cmp     #$02
-	bcs     L053D
+L05BB:	lda     _level
+	cmp     #$04
+	bcs     L05BF
 ;
 ; xPaddle = 0x0;
 ;
@@ -2372,20 +2502,20 @@ L0539:	lda     _level
 ;
 ; while (playing)
 ;
-	jmp     L0209
+	jmp     L028B
 ;
 ; inputListener();
 ;
-L0207:	jsr     _inputListener
+L0289:	jsr     _inputListener
 ;
 ; if (pauseTransition == TRUE && FrameCounter >= 30)
 ;
 	lda     _pauseTransition
 	cmp     #$01
-	bne     L053C
+	bne     L05BE
 	lda     _FrameCounter
 	cmp     #$1E
-	bcc     L053C
+	bcc     L05BE
 ;
 ; pauseTransition = FALSE;
 ;
@@ -2394,8 +2524,8 @@ L0207:	jsr     _inputListener
 ;
 ; if (paused == FALSE)
 ;
-L053C:	lda     _paused
-	bne     L0212
+L05BE:	lda     _paused
+	bne     L0294
 ;
 ; updatePos();
 ;
@@ -2411,26 +2541,26 @@ L053C:	lda     _paused
 ;
 ; frameRoutine();
 ;
-L0212:	jsr     _frameRoutine
+L0294:	jsr     _frameRoutine
 ;
 ; while (playing)
 ;
-L0209:	lda     _playing
-	bne     L0207
+L028B:	lda     _playing
+	bne     L0289
 ;
 ; if (gameover) break;
 ;
 	lda     _gameover
-	bne     L053D
+	bne     L05BF
 ;
 ; for (level = 0; level < sizeof(LEVEL_NB); ++level)
 ;
 	inc     _level
-	jmp     L0539
+	jmp     L05BB
 ;
 ; if (gameover == FALSE) writeWinToPPU();
 ;
-L053D:	lda     _gameover
+L05BF:	lda     _gameover
 	cmp     #$00
 	jeq     _writeWinToPPU
 ;
